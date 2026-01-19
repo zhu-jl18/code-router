@@ -1232,12 +1232,28 @@ waitLoop:
 				code := exitErr.ExitCode()
 				logErrorFn(fmt.Sprintf("%s exited with status %d", commandName, code))
 				result.ExitCode = code
-				result.Error = attachStderr(fmt.Sprintf("%s exited with status %d", commandName, code))
+				if parsed.threadID != "" {
+					result.SessionID = parsed.threadID
+				}
+				if parsed.message != "" {
+					result.Message = parsed.message
+					result.Error = attachStderr(parsed.message)
+				} else {
+					result.Error = attachStderr(fmt.Sprintf("%s exited with status %d", commandName, code))
+				}
 				return result
 			}
 			logErrorFn(commandName + " error: " + waitErr.Error())
 			result.ExitCode = 1
-			result.Error = attachStderr(commandName + " error: " + waitErr.Error())
+			if parsed.threadID != "" {
+				result.SessionID = parsed.threadID
+			}
+			if parsed.message != "" {
+				result.Message = parsed.message
+				result.Error = attachStderr(parsed.message)
+			} else {
+				result.Error = attachStderr(commandName + " error: " + waitErr.Error())
+			}
 			return result
 		}
 	}

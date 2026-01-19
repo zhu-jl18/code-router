@@ -83,6 +83,7 @@ type UnifiedEvent struct {
 	// Opencode-specific fields (camelCase sessionID)
 	OpencodeSessionID string          `json:"sessionID,omitempty"`
 	Part              json.RawMessage `json:"part,omitempty"`
+	Error             json.RawMessage `json:"error,omitempty"`
 }
 
 // OpencodePart represents the part field in opencode events
@@ -91,6 +92,68 @@ type OpencodePart struct {
 	Text      string `json:"text,omitempty"`
 	Reason    string `json:"reason,omitempty"`
 	SessionID string `json:"sessionID,omitempty"`
+}
+
+type OpencodeError struct {
+	Name string `json:"name,omitempty"`
+	Data struct {
+		Message      string `json:"message,omitempty"`
+		StatusCode   int    `json:"statusCode,omitempty"`
+		ResponseBody string `json:"responseBody,omitempty"`
+		Metadata     struct {
+			URL string `json:"url,omitempty"`
+		} `json:"metadata,omitempty"`
+	} `json:"data,omitempty"`
+}
+
+type OpencodeResponseBody struct {
+	Type  string `json:"type,omitempty"`
+	Error struct {
+		Type    string `json:"type,omitempty"`
+		Message string `json:"message,omitempty"`
+	} `json:"error,omitempty"`
+}
+
+func extractOpencodeErrorText(raw json.RawMessage) string {
+	if len(raw) == 0 {
+		return ""
+	}
+
+	var ocErr OpencodeError
+	if err := json.Unmarshal(raw, &ocErr); err != nil {
+		return ""
+	}
+
+	// Best signal: responseBody contains the upstream provider error payload.
+	if ocErr.Data.ResponseBody != "" {
+		var body OpencodeResponseBody
+		if json.Unmarshal([]byte(ocErr.Data.ResponseBody), &body) == nil && body.Error.Message != "" {
+			if body.Error.Type != "" {
+				return fmt.Sprintf("%s: %s", body.Error.Type, body.Error.Message)
+			}
+			return body.Error.Message
+		}
+	}
+
+	// Fallback: message may embed a JSON string (e.g. "Unauthorized: {...}").
+	if ocErr.Data.Message != "" {
+		if idx := strings.Index(ocErr.Data.Message, "{"); idx >= 0 {
+			maybeJSON := ocErr.Data.Message[idx:]
+			var body OpencodeResponseBody
+			if json.Unmarshal([]byte(maybeJSON), &body) == nil && body.Error.Message != "" {
+				if body.Error.Type != "" {
+					return fmt.Sprintf("%s: %s", body.Error.Type, body.Error.Message)
+				}
+				return body.Error.Message
+			}
+		}
+		return ocErr.Data.Message
+	}
+
+	if ocErr.Name != "" {
+		return ocErr.Name
+	}
+	return ""
 }
 
 // ItemContent represents the parsed item.text field for Codex events
@@ -177,12 +240,25 @@ func parseJSONStreamInternal(r io.Reader, warnFn func(string), infoFn func(strin
 			isClaude = true
 		}
 		isGemini := (event.Type == "init" && event.SessionID != "") || event.Role != "" || event.Delta != nil || event.Status != ""
-		isOpencode := event.OpencodeSessionID != "" && len(event.Part) > 0
+		isOpencode := event.OpencodeSessionID != "" && (len(event.Part) > 0 || (event.Type == "error" && len(event.Error) > 0))
 
 		// Handle Opencode events first (most specific detection)
 		if isOpencode {
 			if threadID == "" {
 				threadID = event.OpencodeSessionID
+			}
+
+			if len(event.Part) == 0 {
+				if event.Type == "error" {
+					errText := extractOpencodeErrorText(event.Error)
+					infoFn(fmt.Sprintf("Parsed Opencode event #%d type=%s error_len=%d", totalEvents, event.Type, len(errText)))
+					if errText != "" {
+						opencodeMessage.WriteString(errText)
+						notifyMessage()
+						notifyComplete()
+					}
+				}
+				continue
 			}
 
 			var part OpencodePart

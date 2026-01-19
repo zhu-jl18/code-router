@@ -48,3 +48,16 @@ func TestParseJSONStream_Opencode_NoStopReason(t *testing.T) {
 		t.Errorf("message = %q, want %q", message, "Content")
 	}
 }
+
+func TestParseJSONStream_Opencode_ErrorEvent(t *testing.T) {
+	input := `{"type":"error","timestamp":1,"sessionID":"ses_err","error":{"name":"APIError","data":{"message":"Unauthorized: {\"type\":\"error\",\"error\":{\"type\":\"CreditsError\",\"message\":\"No payment method\"}}","statusCode":401,"isRetryable":false,"responseBody":"{\"type\":\"error\",\"error\":{\"type\":\"CreditsError\",\"message\":\"No payment method\"}}","metadata":{"url":"https://opencode.ai/zen/v1/responses"}}}}`
+
+	message, threadID := parseJSONStream(strings.NewReader(input))
+
+	if threadID != "ses_err" {
+		t.Errorf("threadID = %q, want %q", threadID, "ses_err")
+	}
+	if message != "CreditsError: No payment method" {
+		t.Errorf("message = %q, want %q", message, "CreditsError: No payment method")
+	}
+}
