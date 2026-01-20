@@ -30,6 +30,7 @@ func resetTestHooks() {
 	cleanupLogsFn = cleanupOldLogs
 	signalNotifyFn = signal.Notify
 	signalStopFn = signal.Stop
+	signalNotifyCtxFn = signal.NotifyContext
 	buildCodexArgsFn = buildCodexArgs
 	selectBackendFn = selectBackend
 	commandContext = exec.CommandContext
@@ -4107,13 +4108,7 @@ func TestRun_LoggerRemovedOnSignal(t *testing.T) {
 		t.Skip("signal-based test is not supported on Windows")
 	}
 
-	// Skip in CI due to unreliable signal delivery in containerized environments
-	if os.Getenv("CI") != "" || os.Getenv("GITHUB_ACTIONS") != "" {
-		t.Skip("Skipping signal test in CI environment")
-	}
-
 	defer resetTestHooks()
-	defer signal.Reset(syscall.SIGINT, syscall.SIGTERM)
 
 	// Set shorter delays for faster test
 	forceKillDelay.Store(1)
@@ -4137,6 +4132,13 @@ printf '%s\n' '{"type":"item.completed","item":{"type":"agent_message","text":"l
 	stdinReader = strings.NewReader("")
 	os.Args = []string{"codeagent-wrapper", "task"}
 
+	var cancel context.CancelFunc
+	signalNotifyCtxFn = func(parent context.Context, _ ...os.Signal) (context.Context, context.CancelFunc) {
+		ctx, c := context.WithCancel(parent)
+		cancel = c
+		return ctx, c
+	}
+
 	exitCh := make(chan int, 1)
 	go func() { exitCh <- run() }()
 
@@ -4148,9 +4150,14 @@ printf '%s\n' '{"type":"item.completed","item":{"type":"agent_message","text":"l
 		time.Sleep(10 * time.Millisecond)
 	}
 
-	if proc, err := os.FindProcess(os.Getpid()); err == nil && proc != nil {
-		_ = proc.Signal(syscall.SIGINT)
+	deadline = time.Now().Add(1 * time.Second)
+	for time.Now().Before(deadline) && cancel == nil {
+		time.Sleep(5 * time.Millisecond)
 	}
+	if cancel == nil {
+		t.Fatalf("signalNotifyCtxFn was not called")
+	}
+	cancel()
 
 	var exitCode int
 	select {

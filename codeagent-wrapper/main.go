@@ -45,6 +45,7 @@ var (
 	cleanupLogsFn      = cleanupOldLogs
 	signalNotifyFn     = signal.Notify
 	signalStopFn       = signal.Stop
+	signalNotifyCtxFn  = signal.NotifyContext
 	terminateCommandFn = terminateCommand
 	defaultBuildArgsFn = buildCodexArgs
 	runTaskFn          = runCodexTask
