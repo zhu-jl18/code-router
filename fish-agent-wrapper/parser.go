@@ -311,7 +311,7 @@ func parseJSONStreamInternal(r io.Reader, warnFn func(string), infoFn func(strin
 				notifyMessage()
 			}
 
-			if event.Type == "result" || event.Type == "completion" || event.Type == "done" {
+			if event.Type == "completion" || event.Type == "done" {
 				notifyComplete()
 			}
 
