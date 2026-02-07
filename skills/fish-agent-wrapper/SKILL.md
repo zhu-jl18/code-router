@@ -109,11 +109,26 @@ fish-agent-wrapper --backend ampcode resume <session_id> - <<'EOF'
 EOF
 ```
 
+## Common Errors (Avoid These)
+
+```bash
+# ❌ WRONG: --resume flag does not exist
+fish-agent-wrapper --backend claude --resume <session_id> "follow-up"
+# error: unknown flag: --resume
+
+# ❌ WRONG: resume without backend
+fish-agent-wrapper resume <session_id> "follow-up"
+# error: --backend is required
+
+# ✅ RIGHT
+fish-agent-wrapper --backend claude resume <session_id> "follow-up"
+```
+
 ## Parallel Execution
 
 **Default (summary mode - context-efficient):**
 ```bash
-fish-agent-wrapper --parallel <<'EOF'
+fish-agent-wrapper --parallel --backend codex <<'EOF'
 ---TASK---
 id: task1
 backend: codex
@@ -130,7 +145,7 @@ EOF
 
 **Full output mode (for debugging):**
 ```bash
-fish-agent-wrapper --parallel --full-output <<'EOF'
+fish-agent-wrapper --parallel --backend codex --full-output <<'EOF'
 ...
 EOF
 ```
@@ -141,7 +156,7 @@ EOF
 
 **With per-task backend**:
 ```bash
-fish-agent-wrapper --parallel <<'EOF'
+fish-agent-wrapper --parallel --backend codex <<'EOF'
 ---TASK---
 id: task1
 backend: codex
@@ -189,7 +204,7 @@ Bash tool parameters:
 - timeout: 7200000
 - description: <brief description>
 
-Note: `--backend` is recommended; supported values: `codex | claude | gemini | ampcode` (default: `codex`)
+Note: `--backend` is required; supported values: `codex | claude | gemini | ampcode`
 ```
 
 **Parallel Tasks**:

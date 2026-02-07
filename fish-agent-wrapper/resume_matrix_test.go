@@ -182,7 +182,7 @@ func TestRunParallel_AllBackends_NewMode(t *testing.T) {
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("FISH_AGENT_WRAPPER_CLAUDE_DIR", t.TempDir())
 
-	os.Args = []string{"fish-agent-wrapper", "--parallel"}
+	os.Args = []string{"fish-agent-wrapper", "--parallel", "--backend", "codex"}
 	stdinReader = bytes.NewReader([]byte(
 		`---TASK---
 id: codex
@@ -283,7 +283,7 @@ func TestRunParallel_AllBackends_ResumeMode(t *testing.T) {
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("FISH_AGENT_WRAPPER_CLAUDE_DIR", t.TempDir())
 
-	os.Args = []string{"fish-agent-wrapper", "--parallel"}
+	os.Args = []string{"fish-agent-wrapper", "--parallel", "--backend", "codex"}
 	stdinReader = bytes.NewReader([]byte(
 		`---TASK---
 id: codex

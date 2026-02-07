@@ -220,7 +220,8 @@ func parseArgs() (*Config, error) {
 		return nil, fmt.Errorf("task required")
 	}
 
-	backendName := defaultBackendName
+	backendName := ""
+	backendSpecified := false
 	skipPermissions := envFlagEnabled("FISH_AGENT_WRAPPER_SKIP_PERMISSIONS")
 	filtered := make([]string, 0, len(args))
 	for i := 0; i < len(args); i++ {
@@ -235,15 +236,21 @@ func parseArgs() (*Config, error) {
 			if i+1 >= len(args) {
 				return nil, fmt.Errorf("--backend flag requires a value")
 			}
-			backendName = args[i+1]
-			i++
-			continue
-		case strings.HasPrefix(arg, "--backend="):
-			value := strings.TrimPrefix(arg, "--backend=")
+			value := strings.TrimSpace(args[i+1])
 			if value == "" {
 				return nil, fmt.Errorf("--backend flag requires a value")
 			}
 			backendName = value
+			backendSpecified = true
+			i++
+			continue
+		case strings.HasPrefix(arg, "--backend="):
+			value := strings.TrimSpace(strings.TrimPrefix(arg, "--backend="))
+			if value == "" {
+				return nil, fmt.Errorf("--backend flag requires a value")
+			}
+			backendName = value
+			backendSpecified = true
 			continue
 		case arg == "--skip-permissions", arg == "--dangerously-skip-permissions":
 			skipPermissions = true
@@ -263,6 +270,9 @@ func parseArgs() (*Config, error) {
 
 	if len(filtered) == 0 {
 		return nil, fmt.Errorf("task required")
+	}
+	if !backendSpecified {
+		return nil, fmt.Errorf("--backend is required (supported: codex, claude, gemini, ampcode)")
 	}
 	args = filtered
 

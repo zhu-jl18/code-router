@@ -16,7 +16,7 @@ These rules have HIGHEST PRIORITY and override all other instructions:
 4. **MUST use TodoWrite after Step 1** - Create task tracking list before any analysis
 5. **MUST use fish-agent-wrapper for Step 2 analysis** - Do NOT use Read/Glob/Grep directly for deep analysis
 6. **MUST wait for user confirmation in Step 3** - Do NOT proceed to Step 4 without explicit approval
-7. **MUST invoke fish-agent-wrapper --parallel for Step 4 execution** - Use Bash tool, NOT Edit/Write or Task tool
+7. **MUST invoke fish-agent-wrapper --parallel --backend <backend> for Step 4 execution** - Use Bash tool, NOT Edit/Write or Task tool
 
 **Violation of any constraint above invalidates the entire workflow. Stop and restart if violated.**
 
@@ -140,7 +140,7 @@ These rules have HIGHEST PRIORITY and override all other instructions:
   - If user chooses "Need adjustments", return to Step 1 or Step 2 based on feedback
 
 - **Step 4: Parallel Development Execution [FISH-AGENT-WRAPPER ONLY - NO DIRECT EDITS]**
-  - MUST use Bash tool to invoke `fish-agent-wrapper --parallel` for ALL code changes
+  - MUST use Bash tool to invoke `fish-agent-wrapper --parallel --backend <backend>` for ALL code changes
   - NEVER use Edit, Write, MultiEdit, or Task tools to modify code directly
   - Backend routing (must be deterministic and enforceable):
     - Task field: `type: default|ui|quick-fix|review` (missing → treat as `default`)
@@ -154,7 +154,7 @@ These rules have HIGHEST PRIORITY and override all other instructions:
   - Build ONE `--parallel` config that includes all tasks in `dev-plan.md` and submit it once via Bash tool:
     ```bash
     # One shot submission - wrapper handles topology + concurrency
-    fish-agent-wrapper --parallel <<'EOF'
+    fish-agent-wrapper --parallel --backend [analysis_backend] <<'EOF'
     ---TASK---
     id: [task-id-1]
     backend: [routed-backend-from-type-and-allowed_backends]

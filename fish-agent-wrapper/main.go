@@ -175,7 +175,8 @@ func run() (exitCode int) {
 		}
 
 		if parallelIndex != -1 {
-			backendName := defaultBackendName
+			backendName := ""
+			backendSpecified := false
 			fullOutput := false
 			skipPermissions := envFlagEnabled("FISH_AGENT_WRAPPER_SKIP_PERMISSIONS")
 			var extras []string
@@ -192,15 +193,22 @@ func run() (exitCode int) {
 						fmt.Fprintln(os.Stderr, "ERROR: --backend flag requires a value")
 						return 1
 					}
-					backendName = args[i+1]
-					i++
-				case strings.HasPrefix(arg, "--backend="):
-					value := strings.TrimPrefix(arg, "--backend=")
+					value := strings.TrimSpace(args[i+1])
 					if value == "" {
 						fmt.Fprintln(os.Stderr, "ERROR: --backend flag requires a value")
 						return 1
 					}
 					backendName = value
+					backendSpecified = true
+					i++
+				case strings.HasPrefix(arg, "--backend="):
+					value := strings.TrimSpace(strings.TrimPrefix(arg, "--backend="))
+					if value == "" {
+						fmt.Fprintln(os.Stderr, "ERROR: --backend flag requires a value")
+						return 1
+					}
+					backendName = value
+					backendSpecified = true
 				case arg == "--skip-permissions", arg == "--dangerously-skip-permissions":
 					skipPermissions = true
 				case strings.HasPrefix(arg, "--skip-permissions="):
@@ -215,10 +223,18 @@ func run() (exitCode int) {
 			if len(extras) > 0 {
 				fmt.Fprintln(os.Stderr, "ERROR: --parallel reads its task configuration from stdin; only --backend, --full-output and --skip-permissions are allowed.")
 				fmt.Fprintln(os.Stderr, "Usage examples:")
-				fmt.Fprintf(os.Stderr, "  %s --parallel < tasks.txt\n", name)
-				fmt.Fprintf(os.Stderr, "  echo '...' | %s --parallel\n", name)
-				fmt.Fprintf(os.Stderr, "  %s --parallel <<'EOF'\n", name)
-				fmt.Fprintf(os.Stderr, "  %s --parallel --full-output <<'EOF'  # include full task output\n", name)
+				fmt.Fprintf(os.Stderr, "  %s --parallel --backend codex < tasks.txt\n", name)
+				fmt.Fprintf(os.Stderr, "  echo '...' | %s --parallel --backend claude\n", name)
+				fmt.Fprintf(os.Stderr, "  %s --parallel --backend gemini <<'EOF'\n", name)
+				fmt.Fprintf(os.Stderr, "  %s --parallel --backend ampcode --full-output <<'EOF'  # include full task output\n", name)
+				return 1
+			}
+
+			if !backendSpecified {
+				fmt.Fprintln(os.Stderr, "ERROR: --backend is required in --parallel mode (supported: codex, claude, gemini, ampcode)")
+				fmt.Fprintln(os.Stderr, "Usage examples:")
+				fmt.Fprintf(os.Stderr, "  %s --parallel --backend codex < tasks.txt\n", name)
+				fmt.Fprintf(os.Stderr, "  %s --parallel --backend claude <<'EOF'\n", name)
 				return 1
 			}
 
@@ -571,22 +587,27 @@ func printHelp() {
 	help := fmt.Sprintf(`%[1]s - Go wrapper for AI CLI backends
 
 Usage:
-    %[1]s "task" [workdir]
-    %[1]s --backend claude "task" [workdir]
-    %[1]s --backend ampcode "review plan" [workdir]
-    %[1]s - [workdir]              Read task from stdin
-    %[1]s resume <session_id> "task" [workdir]
-    %[1]s resume <session_id> - [workdir]
-    %[1]s --parallel               Run tasks in parallel (config from stdin)
-    %[1]s --parallel --full-output Run tasks in parallel with full output (legacy)
-    %[1]s --version
-    %[1]s --help
+	%[1]s --backend <backend> "task" [workdir]
+	%[1]s --backend <backend> - [workdir]              Read task from stdin
+	%[1]s --backend <backend> resume <session_id> "task" [workdir]
+	%[1]s --backend <backend> resume <session_id> - [workdir]
+	%[1]s --parallel --backend <backend>               Run tasks in parallel (config from stdin)
+	%[1]s --parallel --backend <backend> --full-output Run tasks in parallel with full output (legacy)
+	%[1]s --version
+	%[1]s --help
+
+Supported backends:
+	codex | claude | gemini | ampcode
+
+Common mistakes:
+	--resume is invalid; use: resume <session_id> <task>
+	resume and new mode both require: --backend <backend>
 
 Parallel mode examples:
-    %[1]s --parallel < tasks.txt
-    echo '...' | %[1]s --parallel
-    %[1]s --parallel --full-output < tasks.txt
-    %[1]s --parallel <<'EOF'
+	%[1]s --parallel --backend codex < tasks.txt
+	echo '...' | %[1]s --parallel --backend claude
+	%[1]s --parallel --backend gemini --full-output < tasks.txt
+	%[1]s --parallel --backend ampcode <<'EOF'
 
 		Prompt Injection (default-on):
 		    Prompt file path: ${FISH_AGENT_WRAPPER_CLAUDE_DIR:-~/.claude}/fish-agent-wrapper/<backend>-prompt.md

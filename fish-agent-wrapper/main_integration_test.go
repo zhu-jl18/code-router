@@ -211,7 +211,7 @@ id: E
 ---CONTENT---
 task-e`
 	stdinReader = bytes.NewReader([]byte(input))
-	os.Args = []string{"fish-agent-wrapper", "--parallel"}
+	os.Args = []string{"fish-agent-wrapper", "--parallel", "--backend", "codex"}
 
 	var mu sync.Mutex
 	starts := make(map[string]time.Time)
@@ -314,7 +314,7 @@ dependencies: A
 ---CONTENT---
 b`
 	stdinReader = bytes.NewReader([]byte(input))
-	os.Args = []string{"fish-agent-wrapper", "--parallel"}
+	os.Args = []string{"fish-agent-wrapper", "--parallel", "--backend", "codex"}
 
 	exitCode := 0
 	output := captureStdout(t, func() {
@@ -365,7 +365,7 @@ id: beta
 ---CONTENT---
 task-beta`
 	stdinReader = bytes.NewReader([]byte(input))
-	os.Args = []string{"fish-agent-wrapper", "--parallel"}
+	os.Args = []string{"fish-agent-wrapper", "--parallel", "--backend", "codex"}
 
 	var exitCode int
 	output := captureStdout(t, func() {
@@ -418,7 +418,7 @@ id: d
 ---CONTENT---
 ok-d`
 	stdinReader = bytes.NewReader([]byte(input))
-	os.Args = []string{"fish-agent-wrapper", "--parallel"}
+	os.Args = []string{"fish-agent-wrapper", "--parallel", "--backend", "codex"}
 
 	expectedLog := filepath.Join(tempDir, fmt.Sprintf("fish-agent-wrapper-%d.log", os.Getpid()))
 
@@ -494,7 +494,7 @@ func TestRunNonParallelOutputsIncludeLogPathsIntegration(t *testing.T) {
 	defer resetTestHooks()
 
 	tempDir := setTempDirEnv(t, t.TempDir())
-	os.Args = []string{"fish-agent-wrapper", "integration-log-check"}
+	os.Args = []string{"fish-agent-wrapper", "--backend", "codex", "integration-log-check"}
 	stdinReader = strings.NewReader("")
 	isTerminalFn = func() bool { return true }
 	codexCommand = "echo"
@@ -558,7 +558,7 @@ id: E
 ---CONTENT---
 ok-e`
 	stdinReader = bytes.NewReader([]byte(input))
-	os.Args = []string{"fish-agent-wrapper", "--parallel"}
+	os.Args = []string{"fish-agent-wrapper", "--parallel", "--backend", "codex"}
 
 	var exitCode int
 	output := captureStdout(t, func() {
@@ -629,7 +629,7 @@ id: T
 ---CONTENT---
 slow`
 	stdinReader = bytes.NewReader([]byte(input))
-	os.Args = []string{"fish-agent-wrapper", "--parallel"}
+	os.Args = []string{"fish-agent-wrapper", "--parallel", "--backend", "codex"}
 
 	exitCode := 0
 	output := captureStdout(t, func() {
@@ -713,7 +713,7 @@ func TestRunStartupCleanupRemovesOrphansEndToEnd(t *testing.T) {
 	codexCommand = createFakeCodexScript(t, "tid-startup", "ok")
 	stdinReader = strings.NewReader("")
 	isTerminalFn = func() bool { return true }
-	os.Args = []string{"fish-agent-wrapper", "task"}
+	os.Args = []string{"fish-agent-wrapper", "--backend", "codex", "task"}
 
 	if exit := run(); exit != 0 {
 		t.Fatalf("run() exit=%d, want 0", exit)
@@ -880,7 +880,7 @@ func TestRunCleanupFlagEndToEnd_FailureDoesNotAffectStartup(t *testing.T) {
 	codexCommand = createFakeCodexScript(t, "tid-cleanup-e2e", "ok")
 	stdinReader = strings.NewReader("")
 	isTerminalFn = func() bool { return true }
-	os.Args = []string{"fish-agent-wrapper", "post-cleanup task"}
+	os.Args = []string{"fish-agent-wrapper", "--backend", "codex", "post-cleanup task"}
 
 	var normalExit int
 	normalOutput := captureStdout(t, func() {
