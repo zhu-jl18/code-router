@@ -13,13 +13,13 @@ AskUserQuestion (backend selection)
   ↓
 AskUserQuestion (requirements clarification)
   ↓
-codeagent analysis (plan mode + task typing + UI auto-detection)
+fish-agent-wrapper analysis (plan mode + task typing + UI auto-detection)
   ↓
 dev-plan-generator (create dev doc)
   ↓
-codeagent concurrent development (2–5 tasks, backend routing)
+fish-agent-wrapper concurrent development (2–5 tasks, backend routing)
   ↓
-codeagent testing & verification (≥90% coverage)
+fish-agent-wrapper testing & verification (≥90% coverage)
   ↓
 Done (generate summary)
 ```
@@ -32,7 +32,6 @@ Done (generate summary)
   - `codex` - Stable, high quality, best cost-performance (default for most tasks)
   - `claude` - Fast, lightweight (for quick fixes and config changes)
   - `gemini` - UI/UX specialist (for frontend styling and components)
-  - `opencode` - Very fast but weaker reasoning (一般不考虑调用; only use for tiny mechanical edits / quick search; avoid complex logic)
 - If user selects ONLY `codex`, ALL subsequent tasks must use `codex` (including UI/quick-fix)
 
 ### 1. Clarify Requirements
@@ -40,8 +39,8 @@ Done (generate summary)
 - No scoring system, no complex logic
 - 2–3 rounds of Q&A until the requirement is clear
 
-### 2. codeagent Analysis + Task Typing + UI Detection
-- Call codeagent to analyze the request in plan mode style
+### 2. fish-agent-wrapper Analysis + Task Typing + UI Detection
+- Call fish-agent-wrapper to analyze the request in plan mode style
 - Extract: core functions, technical points, task list (2–5 items)
 - For each task, assign exactly one type: `default` / `ui` / `quick-fix`
 - UI auto-detection: needs UI work when task involves style assets (.css, .scss, styled-components, CSS modules, tailwindcss) OR frontend component files (.tsx, .jsx, .vue); output yes/no plus evidence
@@ -59,12 +58,12 @@ Done (generate summary)
   - `ui` → `gemini` (enforced when allowed)
   - `quick-fix` → `claude`
   - Missing `type` → treat as `default`
-  - If the preferred backend is not allowed, fallback to an allowed backend by priority: `codex` → `claude` → `gemini` → `opencode`
+  - If the preferred backend is not allowed, fallback to an allowed backend by priority: `codex` → `claude` → `gemini`
 - Independent tasks → run in parallel
 - Conflicting tasks → run serially
 
 ### 5. Testing & Verification
-- Each codeagent task:
+- Each fish-agent-wrapper task:
   - Implements the feature
   - Writes tests
   - Runs coverage
@@ -95,15 +94,14 @@ Only one file—minimal and clear.
 
 ### Tools
 - **AskUserQuestion**: interactive requirement clarification
-- **codeagent skill**: analysis, development, testing; supports `--backend` for `codex` / `claude` / `gemini` / `opencode` (opencode is last-resort; keep tasks tiny and explicit)
+- **fish-agent-wrapper skill**: analysis, development, testing; supports `--backend` for `codex` / `claude` / `gemini`
 - **dev-plan-generator agent**: generate dev doc (subagent via Task tool, saves context)
 
 ## Backend Selection & Routing
 - **Step 0**: user selects allowed backends; if `仅 codex`, all tasks use codex
 - **UI detection standard**: style files (.css, .scss, styled-components, CSS modules, tailwindcss) OR frontend component code (.tsx, .jsx, .vue) trigger `needs_ui: true`
 - **Task type field**: each task in `dev-plan.md` must have `type: default|ui|quick-fix`
-- **Routing**: `default`→codex, `ui`→gemini, `quick-fix`→claude; if disallowed, fallback to an allowed backend by priority: codex→claude→gemini→opencode
-  - **Opencode note**: use only for very small, explicit, low-ambiguity changes; if the task grows, reroute to `codex`/`claude`.
+- **Routing**: `default`→codex, `ui`→gemini, `quick-fix`→claude; if disallowed, fallback to an allowed backend by priority: codex→claude→gemini
 
 ## Key Features
 
@@ -120,11 +118,11 @@ Only one file—minimal and clear.
 ### ✅ Concurrency
 - Tasks split based on natural functional boundaries
 - Auto-detect dependencies and conflicts
-- codeagent executes independently with optimal backend
+- fish-agent-wrapper executes independently with optimal backend
 
 ### ✅ Quality Assurance
 - Enforces 90% coverage
-- codeagent tests and verifies its own work
+- fish-agent-wrapper tests and verifies its own work
 - Automatic retry on failure
 
 ## Example
@@ -143,7 +141,7 @@ A: Email + password
 Q: Should login be remembered?
 A: Yes, use JWT token
 
-# Step 2: codeagent analysis
+# Step 2: fish-agent-wrapper analysis
 Output:
 - Core: email/password login + JWT auth
 - Task 1: Backend API (type=default)
@@ -186,7 +184,7 @@ Minimal structure, only three files.
 1. **KISS**: keep it simple
 2. **Disposable**: no persistent config
 3. **Quality first**: enforce 90% coverage
-4. **Concurrency first**: leverage codeagent
+4. **Concurrency first**: leverage fish-agent-wrapper
 5. **No legacy baggage**: clean-slate design
 
 ---

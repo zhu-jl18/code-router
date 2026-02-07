@@ -1,19 +1,18 @@
-# codeagent-fish-fork（dev-only）
+# fish-agent-wrapper
 
 <p align="center">
   <strong>中文</strong> | <a href="README.en.md">English</a>
 </p>
 
-这是从 `cexll/myclaude` **fork 并大幅裁剪**的个人版本：只保留 **dev 工作流** 和它依赖的最小组件集合。
+这是从 `cexll/myclaude` **fork 并大幅裁剪**的个人版本：聚焦 `/dev` 工作流及其最小依赖组件。
 
 你会得到什么（Key Concepts）：
 - `/dev` 工作流：需求澄清 → 计划 → 并行执行 → 验证
-- `codeagent-wrapper`：Go 写的执行器；统一 4 个后端 `codex/claude/gemini/opencode`；核心机制 `--parallel`
+- `fish-agent-wrapper`：Go 写的执行器；统一 3 个后端 `codex/claude/gemini`；核心机制 `--parallel`
 - `product-requirements` skill：PRD 生成
 
 你不会得到什么：
 - upstream 里那套 agent 映射/复杂编排（已刻意移除）
-- 任何非 dev 的体系（这不是通用“万能仓库”）
 
 ## 安装（WSL2/Linux + Windows）
 
@@ -33,14 +32,14 @@ python3 install.py --skip-wrapper
 - `CLAUDE.md`：**追加** managed block（非破坏性覆写；`--force` 刷新 managed block）
 - `commands/dev.md`
 - `agents/dev-plan-generator.md`
-- `skills/codeagent/SKILL.md`
+- `skills/fish-agent-wrapper/SKILL.md`
 - `skills/product-requirements/SKILL.md`
-- `~/.claude/codeagent/*-prompt.md`：每个后端一个空占位文件（用于 prompt 注入）
-- `~/.claude/bin/codeagent-wrapper`（Windows 上是 `.exe`）
+- `~/.claude/fish-agent-wrapper/*-prompt.md`：每个后端一个空占位文件（用于 prompt 注入）
+- `~/.claude/bin/fish-agent-wrapper`（Windows 上是 `.exe`）
 
 提示：
 - 在 WSL 里运行 `install.py` 会安装 Linux wrapper；在 Windows 里运行 `install.py` 会安装 Windows `.exe`。
-- 如果你使用了非默认目录，请设置 `CODEAGENT_CLAUDE_DIR` 指向你的目录。
+- 如果你使用了非默认目录，请设置 `FISH_AGENT_WRAPPER_CLAUDE_DIR` 指向你的目录。
 
 ## 维护（重新编译 dist 二进制）
 
@@ -49,23 +48,22 @@ bash scripts/build-dist.sh
 ```
 
 产物：
-- `dist/codeagent-wrapper-linux-amd64`
-- `dist/codeagent-wrapper-windows-amd64.exe`
+- `dist/fish-agent-wrapper-linux-amd64`
+- `dist/fish-agent-wrapper-windows-amd64.exe`
 
 ## Prompt 注入（默认开启；空文件 = 等价不注入）
 
 默认占位文件（每个后端一个）：
-- `~/.claude/codeagent/codex-prompt.md`
-- `~/.claude/codeagent/claude-prompt.md`
-- `~/.claude/codeagent/gemini-prompt.md`
-- `~/.claude/codeagent/opencode-prompt.md`
+- `~/.claude/fish-agent-wrapper/codex-prompt.md`
+- `~/.claude/fish-agent-wrapper/claude-prompt.md`
+- `~/.claude/fish-agent-wrapper/gemini-prompt.md`
 
 规则：
 - wrapper 会读取对应后端的 prompt 文件；只有在内容非空时才会 prepend 到任务前面
 - 文件不存在 / 只有空白字符：等价“无注入”
 
 常用环境变量：
-- `CODEAGENT_CLAUDE_DIR`：Claude 配置根目录（默认 `~/.claude`）
+- `FISH_AGENT_WRAPPER_CLAUDE_DIR`：Claude 配置根目录（默认 `~/.claude`）
 
 ## 使用
 
@@ -82,6 +80,6 @@ PRD：
 ## 开发/测试
 
 ```bash
-cd codeagent-wrapper
+cd fish-agent-wrapper
 go test ./...
 ```

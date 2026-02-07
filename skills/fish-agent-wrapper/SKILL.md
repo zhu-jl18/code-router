@@ -1,13 +1,13 @@
 ---
-name: codeagent
-description: Execute codeagent-wrapper for multi-backend AI code tasks. Supports Codex, Claude, Gemini, and Opencode backends with file references (@syntax) and structured output.
+name: fish-agent-wrapper
+description: Execute fish-agent-wrapper for multi-backend AI code tasks. Supports Codex, Claude, Gemini, with file references (@syntax) and structured output.
 ---
 
-# Codeagent Wrapper Integration
+# fish-agent-wrapper Integration
 
 ## Overview
 
-Execute codeagent-wrapper commands with pluggable AI backends (Codex, Claude, Gemini, Opencode). Supports file references via `@` syntax, parallel task execution with backend selection, and configurable security controls.
+Execute fish-agent-wrapper commands with pluggable AI backends(Codex, Claude, Gemini). Supports file references via `@` syntax, parallel task execution with backend selection, and configurable security controls.
 
 ## When to Use
 
@@ -19,23 +19,22 @@ Execute codeagent-wrapper commands with pluggable AI backends (Codex, Claude, Ge
 
 **HEREDOC syntax** (recommended):
 ```bash
-codeagent-wrapper --backend codex - [working_dir] <<'EOF'
+fish-agent-wrapper --backend codex - [working_dir] <<'EOF'
 <task content here>
 EOF
 ```
 
 **With backend selection**:
 ```bash
-codeagent-wrapper --backend claude - . <<'EOF'
+fish-agent-wrapper --backend claude - . <<'EOF'
 <task content here>
 EOF
 ```
 
 **Simple tasks**:
 ```bash
-codeagent-wrapper --backend codex "simple task" [working_dir]
-codeagent-wrapper --backend gemini "simple task" [working_dir]
-codeagent-wrapper --backend opencode "tiny edit (few lines) with explicit instructions" [working_dir]
+fish-agent-wrapper --backend codex "simple task" [working_dir]
+fish-agent-wrapper --backend gemini "simple task" [working_dir]
 ```
 
 ## Backends
@@ -45,7 +44,6 @@ codeagent-wrapper --backend opencode "tiny edit (few lines) with explicit instru
 | codex | `--backend codex` | OpenAI Codex (default) | Code analysis, complex development |
 | claude | `--backend claude` | Anthropic Claude | Quick fixes, documentation, prompts |
 | gemini | `--backend gemini` | Google Gemini | UI/UX prototyping |
-| opencode | `--backend opencode` | Opencode | Tiny, explicit edits (few lines) / quick locate/search |
 
 ### Backend Selection Guide
 
@@ -67,20 +65,6 @@ codeagent-wrapper --backend opencode "tiny edit (few lines) with explicit instru
 - Interactive element generation with accessibility support
 - Example: "Create a responsive dashboard layout with sidebar navigation and data visualization cards"
 
-**Opencode**:
-- Extremely fast but weaker reasoning. Treat it as a *dumb executor*.
-- Generally not considered (一般不考虑调用); use only when the task is tiny and fully specified.
-- Best for:
-  - Tiny, mechanical diffs (change a constant/config value, tweak 1–10 lines)
-  - Clear, fully-specified edits where you can name the exact file(s) and desired end state
-  - Quick locate/search when you already know what you want to find (file/path/symbol hints)
-- Avoid for:
-  - Architecture/design decisions
-  - Ambiguous requirements
-  - Multi-file refactors with complex dependencies
-- Note: This wrapper intentionally does **not** pass `--model`; opencode model/config is controlled by the opencode CLI itself.
-- Example: "In @src/foo.ts, change `DEFAULT_TIMEOUT` from 30 to 10. Update the one callsite in @src/bar.ts accordingly. Run the smallest relevant test command and report the exact output."
-
 **Backend Switching**:
 - Start with Codex for analysis, switch to Claude for documentation, then Gemini for UI implementation
 - Use per-task backend selection in parallel mode to optimize for each task's strengths
@@ -89,7 +73,7 @@ codeagent-wrapper --backend opencode "tiny edit (few lines) with explicit instru
 
 - `task` (required): Task description, supports `@file` references
 - `working_dir` (optional): Working directory (default: current)
-- `--backend` (required): Select AI backend (codex/claude/gemini/opencode)
+- `--backend` (required): Select AI backend (codex/claude/gemini)
 
 ## Return Format
 
@@ -104,12 +88,12 @@ SESSION_ID: 019a7247-ac9d-71f3-89e2-a823dbd8fd14
 
 ```bash
 # Resume with codex backend
-codeagent-wrapper --backend codex resume <session_id> - <<'EOF'
+fish-agent-wrapper --backend codex resume <session_id> - <<'EOF'
 <follow-up task>
 EOF
 
 # Resume with specific backend
-codeagent-wrapper --backend claude resume <session_id> - <<'EOF'
+fish-agent-wrapper --backend claude resume <session_id> - <<'EOF'
 <follow-up task>
 EOF
 ```
@@ -118,7 +102,7 @@ EOF
 
 **Default (summary mode - context-efficient):**
 ```bash
-codeagent-wrapper --parallel <<'EOF'
+fish-agent-wrapper --parallel <<'EOF'
 ---TASK---
 id: task1
 backend: codex
@@ -135,7 +119,7 @@ EOF
 
 **Full output mode (for debugging):**
 ```bash
-codeagent-wrapper --parallel --full-output <<'EOF'
+fish-agent-wrapper --parallel --full-output <<'EOF'
 ...
 EOF
 ```
@@ -146,7 +130,7 @@ EOF
 
 **With per-task backend**:
 ```bash
-codeagent-wrapper --parallel <<'EOF'
+fish-agent-wrapper --parallel <<'EOF'
 ---TASK---
 id: task1
 backend: codex
@@ -169,35 +153,35 @@ EOF
 ```
 
 **Concurrency Control**:
-Set `CODEAGENT_MAX_PARALLEL_WORKERS` to limit concurrent tasks (default: unlimited).
+Set `FISH_AGENT_WRAPPER_MAX_PARALLEL_WORKERS` to limit concurrent tasks (default: unlimited).
 
 ## Environment Variables
 
 - `CODEX_TIMEOUT`: Override timeout in milliseconds (default: 7200000 = 2 hours)
-- `CODEAGENT_SKIP_PERMISSIONS`: Control Claude CLI permission checks
+- `FISH_AGENT_WRAPPER_SKIP_PERMISSIONS`: Control Claude CLI permission checks
   - For **Claude** backend: default is **skip permissions** unless explicitly disabled
-  - Set `CODEAGENT_SKIP_PERMISSIONS=false` to keep Claude permission prompts
-- `CODEAGENT_MAX_PARALLEL_WORKERS`: Limit concurrent tasks in parallel mode (default: unlimited, recommended: 8)
-- `CODEAGENT_CLAUDE_DIR`: Override the base Claude config dir (default: `~/.claude`)
+  - Set `FISH_AGENT_WRAPPER_SKIP_PERMISSIONS=false` to keep Claude permission prompts
+- `FISH_AGENT_WRAPPER_MAX_PARALLEL_WORKERS`: Limit concurrent tasks in parallel mode (default: unlimited, recommended: 8)
+- `FISH_AGENT_WRAPPER_CLAUDE_DIR`: Override the base Claude config dir (default: `~/.claude`)
 
 ## Invocation Pattern
 
 **Single Task**:
 ```
 Bash tool parameters:
-- command: codeagent-wrapper --backend <backend> - [working_dir] <<'EOF'
+- command: fish-agent-wrapper --backend <backend> - [working_dir] <<'EOF'
   <task content>
   EOF
 - timeout: 7200000
 - description: <brief description>
 
-Note: `--backend` is recommended; supported values: `codex | claude | gemini | opencode` (default: `codex`)
+Note: `--backend` is recommended; supported values: `codex | claude | gemini` (default: `codex`)
 ```
 
 **Parallel Tasks**:
 ```
 Bash tool parameters:
-- command: codeagent-wrapper --parallel --backend <backend> <<'EOF'
+- command: fish-agent-wrapper --parallel --backend <backend> <<'EOF'
   ---TASK---
   id: task_id
   backend: <backend>  # Optional, overrides global
@@ -214,7 +198,7 @@ Note: Global --backend is required; per-task backend is optional
 
 ## Critical Rules
 
-**NEVER kill codeagent processes.** Long-running tasks are normal. Instead:
+**NEVER kill fish-agent-wrapper processes.** Long-running tasks are normal. Instead:
 
 1. **Check task status via log file**:
    ```bash
@@ -233,16 +217,16 @@ Note: Global --backend is required; per-task backend is optional
 
 3. **Check process without killing**:
    ```bash
-   ps aux | grep codeagent-wrapper | grep -v grep
+   ps aux | grep fish-agent-wrapper | grep -v grep
    ```
 
-**Why:** codeagent tasks often take 2-10 minutes. Killing them wastes API costs and loses progress.
+**Why:** fish-agent-wrapper tasks often take 2-10 minutes. Killing them wastes API costs and loses progress.
 
 ## Security Best Practices
 
 - **Claude Backend**: Permission checks enabled by default
-  - To skip checks: set `CODEAGENT_SKIP_PERMISSIONS=true` or pass `--skip-permissions`
-- **Concurrency Limits**: Set `CODEAGENT_MAX_PARALLEL_WORKERS` in production to prevent resource exhaustion
+  - To skip checks: set `FISH_AGENT_WRAPPER_SKIP_PERMISSIONS=true` or pass `--skip-permissions`
+- **Concurrency Limits**: Set `FISH_AGENT_WRAPPER_MAX_PARALLEL_WORKERS` in production to prevent resource exhaustion
 - **Automation Context**: This wrapper is designed for AI-driven automation where permission prompts would block execution
 
 ## Recent Updates

@@ -532,9 +532,9 @@ func shouldSkipTask(task TaskSpec, failed map[string]TaskResult) (bool, string) 
 	return true, fmt.Sprintf("skipped due to failed dependencies: %s", strings.Join(blocked, ","))
 }
 
-// getStatusSymbols returns status symbols based on ASCII mode.
+	// getStatusSymbols returns status symbols based on ASCII mode.
 func getStatusSymbols() (success, warning, failed string) {
-	if os.Getenv("CODEAGENT_ASCII_MODE") == "true" {
+	if os.Getenv("FISH_AGENT_WRAPPER_ASCII_MODE") == "true" {
 		return "PASS", "WARN", "FAIL"
 	}
 	return "✓", "⚠️", "✗"
@@ -852,12 +852,6 @@ func runCodexTaskWithContext(parentCtx context.Context, taskSpec TaskSpec, backe
 	}
 
 	useStdin := taskSpec.UseStdin
-	// opencode run expects the prompt as positional args ("message..") and does not
-	// document reading the prompt from stdin. Passing "-" (stdin mode) would drop
-	// the message entirely and can lead to confusing hangs/failures.
-	if cfg.Backend == "opencode" {
-		useStdin = false
-	}
 	targetArg := taskSpec.Task
 	if useStdin {
 		targetArg = "-"

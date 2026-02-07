@@ -1,4 +1,4 @@
-# codeagent-fish-fork (dev-only)
+# fish-agent-wrapper
 
 <p align="center">
   <a href="README.md">中文</a> | <strong>English</strong>
@@ -6,12 +6,12 @@
 
 Fork notice:
 - This is a personal, heavily simplified fork derived from `cexll/myclaude`.
-- Scope: dev-only workflow + `codeagent-wrapper` + PRD skill. Everything else is intentionally removed.
+- Scope: `/dev` workflow + `fish-agent-wrapper` + PRD skill. Everything else is intentionally removed.
 
 What you get:
 - `/dev` workflow (requirements -> plan -> parallel execution -> verification)
 - `product-requirements` skill (PRD generator)
-- `codeagent-wrapper` (Go executor; backends: `codex` / `claude` / `gemini` / `opencode`; core: `--parallel`)
+- `fish-agent-wrapper` (Go executor; backends: `codex` / `claude` / `gemini`; core: `--parallel`)
 
 ## Install (WSL2/Linux + Windows)
 
@@ -20,8 +20,8 @@ python3 install.py
 ```
 
 Notes:
-- The installer copies a prebuilt `codeagent-wrapper` binary from `./dist` (no Go toolchain required at install time).
-- It appends a managed dev-only block to your `CLAUDE.md` (non-destructive; `--force` refreshes the managed block).
+- The installer copies a prebuilt `fish-agent-wrapper` binary from `./dist` (no Go toolchain required at install time).
+- It appends a managed workflow block to your `CLAUDE.md` (non-destructive; `--force` refreshes the managed block).
 
 Optional:
 ```bash
@@ -33,10 +33,10 @@ It installs/updates:
 - `CLAUDE.md` (append-only managed block)
 - `commands/dev.md`
 - `agents/dev-plan-generator.md`
-- `skills/codeagent/SKILL.md`
+- `skills/fish-agent-wrapper/SKILL.md`
 - `skills/product-requirements/SKILL.md`
-- `~/.claude/codeagent/*-prompt.md` (per-backend empty placeholders; used for prompt injection)
-- `~/.claude/bin/codeagent-wrapper` (or `.exe` on Windows)
+- `~/.claude/fish-agent-wrapper/*-prompt.md` (per-backend empty placeholders; used for prompt injection)
+- `~/.claude/bin/fish-agent-wrapper` (or `.exe` on Windows)
 
 ## Maintain (Rebuild Dist Binaries)
 
@@ -45,23 +45,22 @@ bash scripts/build-dist.sh
 ```
 
 This produces:
-- `dist/codeagent-wrapper-linux-amd64`
-- `dist/codeagent-wrapper-windows-amd64.exe`
+- `dist/fish-agent-wrapper-linux-amd64`
+- `dist/fish-agent-wrapper-windows-amd64.exe`
 
 ## Prompt Injection (Default-On, Empty = No-Op)
 
 Default prompt placeholder files:
-- `~/.claude/codeagent/codex-prompt.md`
-- `~/.claude/codeagent/claude-prompt.md`
-- `~/.claude/codeagent/gemini-prompt.md`
-- `~/.claude/codeagent/opencode-prompt.md`
+- `~/.claude/fish-agent-wrapper/codex-prompt.md`
+- `~/.claude/fish-agent-wrapper/claude-prompt.md`
+- `~/.claude/fish-agent-wrapper/gemini-prompt.md`
 
 Behavior:
 - Wrapper loads the per-backend prompt and prepends it only if it has non-empty content.
 - Empty/whitespace-only or missing prompt files behave like "no injection".
 
 Useful env vars:
-- `CODEAGENT_CLAUDE_DIR`: base dir (default `~/.claude`)
+- `FISH_AGENT_WRAPPER_CLAUDE_DIR`: base dir (default `~/.claude`)
 
 ## Usage
 
@@ -78,7 +77,6 @@ PRD:
 ## Dev
 
 ```bash
-cd codeagent-wrapper
+cd fish-agent-wrapper
 go test ./...
 ```
-

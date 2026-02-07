@@ -76,7 +76,7 @@ func getEnv(key, defaultValue string) string {
 }
 
 func resolveClaudeDir() string {
-	raw := strings.TrimSpace(os.Getenv("CODEAGENT_CLAUDE_DIR"))
+	raw := strings.TrimSpace(os.Getenv("FISH_AGENT_WRAPPER_CLAUDE_DIR"))
 	if raw != "" {
 		expanded := raw
 		if raw == "~" || strings.HasPrefix(raw, "~/") || strings.HasPrefix(raw, "~\\") {
@@ -114,8 +114,8 @@ func defaultPromptFileForBackend(backendName string) string {
 	}
 
 	switch backend {
-	case "codex", "claude", "gemini", "opencode":
-		return filepath.Join(base, "codeagent", backend+"-prompt.md")
+	case "codex", "claude", "gemini":
+		return filepath.Join(base, "fish-agent-wrapper", backend+"-prompt.md")
 	default:
 		return ""
 	}

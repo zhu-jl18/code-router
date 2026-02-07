@@ -12,7 +12,7 @@ func TestClaudeBuildArgs_ModesAndPermissions(t *testing.T) {
 	backend := ClaudeBackend{}
 
 	t.Run("new mode omits skip-permissions when env disabled", func(t *testing.T) {
-		t.Setenv("CODEAGENT_SKIP_PERMISSIONS", "false")
+		t.Setenv("FISH_AGENT_WRAPPER_SKIP_PERMISSIONS", "false")
 		cfg := &Config{Mode: "new", WorkDir: "/repo"}
 		got := backend.BuildArgs(cfg, "todo")
 		want := []string{"-p", "--setting-sources", "", "--output-format", "stream-json", "--verbose", "todo"}
@@ -31,7 +31,7 @@ func TestClaudeBuildArgs_ModesAndPermissions(t *testing.T) {
 	})
 
 	t.Run("resume mode includes session id", func(t *testing.T) {
-		t.Setenv("CODEAGENT_SKIP_PERMISSIONS", "false")
+		t.Setenv("FISH_AGENT_WRAPPER_SKIP_PERMISSIONS", "false")
 		cfg := &Config{Mode: "resume", SessionID: "sid-123", WorkDir: "/ignored"}
 		got := backend.BuildArgs(cfg, "resume-task")
 		want := []string{"-p", "--setting-sources", "", "-r", "sid-123", "--output-format", "stream-json", "--verbose", "resume-task"}
@@ -41,7 +41,7 @@ func TestClaudeBuildArgs_ModesAndPermissions(t *testing.T) {
 	})
 
 	t.Run("resume mode without session still returns base flags", func(t *testing.T) {
-		t.Setenv("CODEAGENT_SKIP_PERMISSIONS", "false")
+		t.Setenv("FISH_AGENT_WRAPPER_SKIP_PERMISSIONS", "false")
 		cfg := &Config{Mode: "resume", WorkDir: "/ignored"}
 		got := backend.BuildArgs(cfg, "follow-up")
 		want := []string{"-p", "--setting-sources", "", "--output-format", "stream-json", "--verbose", "follow-up"}
@@ -150,7 +150,6 @@ func TestClaudeBuildArgs_BackendMetadata(t *testing.T) {
 		{backend: CodexBackend{}, name: "codex", command: "codex"},
 		{backend: ClaudeBackend{}, name: "claude", command: "claude"},
 		{backend: GeminiBackend{}, name: "gemini", command: "gemini"},
-		{backend: OpencodeBackend{}, name: "opencode", command: "opencode"},
 	}
 
 	for _, tt := range tests {
@@ -161,37 +160,6 @@ func TestClaudeBuildArgs_BackendMetadata(t *testing.T) {
 			t.Fatalf("Command() = %s, want %s", got, tt.command)
 		}
 	}
-}
-
-func TestOpencodeBuildArgs_ModesAndInput(t *testing.T) {
-	backend := OpencodeBackend{}
-
-	t.Run("new mode passes prompt as positional args", func(t *testing.T) {
-		cfg := &Config{Mode: "new"}
-		got := backend.BuildArgs(cfg, "hello")
-		want := []string{"run", "--format", "json", "hello"}
-		if !reflect.DeepEqual(got, want) {
-			t.Fatalf("got %v, want %v", got, want)
-		}
-	})
-
-	t.Run("resume mode includes -s session id", func(t *testing.T) {
-		cfg := &Config{Mode: "resume", SessionID: "ses-123"}
-		got := backend.BuildArgs(cfg, "follow-up")
-		want := []string{"run", "-s", "ses-123", "--format", "json", "follow-up"}
-		if !reflect.DeepEqual(got, want) {
-			t.Fatalf("got %v, want %v", got, want)
-		}
-	})
-
-	t.Run("stdin target uses no positional prompt", func(t *testing.T) {
-		cfg := &Config{Mode: "new"}
-		got := backend.BuildArgs(cfg, "-")
-		want := []string{"run", "--format", "json"}
-		if !reflect.DeepEqual(got, want) {
-			t.Fatalf("got %v, want %v", got, want)
-		}
-	})
 }
 
 func TestLoadMinimalEnvSettings(t *testing.T) {

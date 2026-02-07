@@ -150,13 +150,13 @@ func buildClaudeArgs(cfg *Config, targetArg string) []string {
 		return nil
 	}
 	args := []string{"-p"}
-	// Default to skip permissions unless CODEAGENT_SKIP_PERMISSIONS=false
-	if cfg.SkipPermissions || envFlagDefaultTrue("CODEAGENT_SKIP_PERMISSIONS") {
+	// Default to skip permissions unless FISH_AGENT_WRAPPER_SKIP_PERMISSIONS=false
+	if cfg.SkipPermissions || envFlagDefaultTrue("FISH_AGENT_WRAPPER_SKIP_PERMISSIONS") {
 		args = append(args, "--dangerously-skip-permissions")
 	}
 
 	// Prevent infinite recursion: disable all setting sources (user, project, local)
-	// This ensures a clean execution environment without CLAUDE.md or skills that would trigger codeagent
+	// This ensures a clean execution environment without CLAUDE.md or skills that would trigger fish-agent-wrapper
 	args = append(args, "--setting-sources", "")
 
 	if cfg.Mode == "resume" {
@@ -180,22 +180,6 @@ func (GeminiBackend) Command() string {
 }
 func (GeminiBackend) BuildArgs(cfg *Config, targetArg string) []string {
 	return buildGeminiArgs(cfg, targetArg)
-}
-
-type OpencodeBackend struct{}
-
-func (OpencodeBackend) Name() string    { return "opencode" }
-func (OpencodeBackend) Command() string { return "opencode" }
-func (OpencodeBackend) BuildArgs(cfg *Config, targetArg string) []string {
-	args := []string{"run"}
-	if cfg.Mode == "resume" && cfg.SessionID != "" {
-		args = append(args, "-s", cfg.SessionID)
-	}
-	args = append(args, "--format", "json")
-	if targetArg != "-" {
-		args = append(args, targetArg)
-	}
-	return args
 }
 
 func buildGeminiArgs(cfg *Config, targetArg string) []string {
