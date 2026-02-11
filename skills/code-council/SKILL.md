@@ -199,25 +199,25 @@ EOF
 
 ### Step 4: Host Agent Final Review (MANDATORY — DO NOT SKIP)
 
-After code-router returns, the host agent MUST perform its own review pass. This is the key differentiator of code-council.
+After code-router returns, the host agent MUST perform its own review pass before presenting to the user.
+
+Note: each code-router task is a full AI agent with complete filesystem access — it can read any file, run git commands, and explore the entire project. Tasks are NOT "blind" to the project. What they lack is the **user's conversation context** — the host agent knows what the user has been discussing, their priorities, and their intent.
 
 **Why this step exists**:
-- code-router tasks run in isolation — they lack cross-project context
-- The host agent has access to the full codebase, git history, and project conventions
-- Individual reviewers may produce false positives or miss project-specific issues
+- **User context**: The host agent carries the ongoing conversation — it knows what the user cares about, prior discussions, and implicit priorities that code-router tasks never see
+- **Interactive ability**: The host agent can ask the user follow-up questions; code-router tasks are fire-and-forget
+- **Quality gate**: Raw synthesis output should be reviewed and organized before presenting to the user, not dumped as-is
 
 **What the host agent does**:
 
 1. **Read the synthesized report** from code-router output
-2. **Validate each finding**:
-   - Does this finding actually apply to this codebase's conventions?
-   - Is the severity rating appropriate?
-   - Mark any false positive as `[DISPUTED]` with a brief reason
-3. **Add missed issues**: Use the host agent's broader context to catch things the council missed (e.g., known tech debt, project-specific anti-patterns, cross-module implications)
-4. **Produce the final output**: Present findings to the user, organized by priority:
+2. **Sanity-check findings** against user context:
+   - Is the severity appropriate given what the user is working on?
+   - Are any findings irrelevant to the user's current goal? If so, deprioritize (don't remove)
+3. **Organize for the user**: Present findings prioritized by what matters most to this user in this context:
    - Top 3-5 actionable items highlighted at the top
    - Full findings list grouped by file
-   - Any disputed items noted with reasoning
+4. **Be ready to discuss**: The user may challenge or ask about specific findings — the host agent should be prepared to dig deeper
 
 ### Step 5: Offer Follow-up Actions
 
