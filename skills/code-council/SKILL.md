@@ -1,13 +1,14 @@
 ---
 name: code-council
-description: Multi-perspective parallel code review using code-router. Runs 2-3 AI reviewers with distinct roles simultaneously, synthesizes findings, then the host agent performs a mandatory final review pass before presenting to the user.
+description: Multi-backend parallel code review using code-router. Runs 2-3 AI reviewers simultaneously with the same comprehensive review prompt, then the host agent verifies findings and synthesizes a final report.
+compatibility: Requires code-router skill with at least 2 backends configured (codex, claude, gemini).
 ---
 
-# code-council: Multi-Perspective Code Review
+# code-council: Multi-Backend Code Review
 
 ## Overview
 
-Leverage code-router's multi-backend parallel execution to run 2-3 AI reviewers simultaneously, each with a distinct review lens. After code-router synthesizes their findings, the **host agent performs a mandatory final review pass** — validating, challenging, and enriching the report with project-wide context before presenting to the user.
+Leverage code-router's multi-backend parallel execution to run multiple AI reviewers simultaneously, each performing an independent comprehensive code review. The **host agent then verifies each finding and synthesizes the final report** — ensuring only real issues are presented to the user.
 
 ## When to Use
 
@@ -15,34 +16,6 @@ Leverage code-router's multi-backend parallel execution to run 2-3 AI reviewers 
 - PR review or pre-merge quality gate
 - Module-level or file-level review
 - A skill or command definition declares a dependency on this skill
-
-## Review Roles
-
-### Always Active
-
-1. **Logic Reviewer** (preferred backend: `codex`)
-   - Design patterns, SOLID violations, DRY
-   - Performance bottlenecks, algorithmic complexity
-   - Race conditions, concurrency issues
-   - Dependency coupling
-
-2. **Spec Reviewer** (preferred backend: `claude`)
-   - Edge cases and boundary conditions
-   - Error handling completeness
-   - Type safety, null safety
-   - Naming consistency, API contract clarity
-   - Missing or misleading documentation
-
-### Conditionally Active
-
-3. **UX Reviewer** (preferred backend: `gemini`)
-   - **Activation rule**: target files contain UI indicators (see detection criteria below)
-   - Accessibility (a11y) compliance
-   - Responsive design, breakpoint handling
-   - UI state completeness (loading, error, empty states)
-   - Visual consistency with design system
-
-   **When NOT activated**: only 2 reviewers run. Do NOT force UX review on pure backend/infra/CLI code.
 
 ## Workflow
 
@@ -56,168 +29,134 @@ Resolve target files from user input:
 
 If scope is ambiguous, ask the user to clarify.
 
-### Step 2: UI Detection
+### Step 2: Select Backends
 
-Scan target file paths and (when practical) content for UI indicators:
+Ask the user which backends to enable for parallel review:
 
-```
-Match ANY → has_ui = true:
-  File extensions : .tsx .jsx .vue .svelte .css .scss .less
-  Content patterns: className= | styled\. | @apply | css-modules import | tailwind utility classes
-```
+**Options**:
+- codex (recommended)
+- claude (recommended)
+- gemini (recommended)
 
-Store result as `has_ui`.
+**Multi-select**: Allow user to pick one or more backends
+
+**Default**: All three enabled
+
+**Fallback** (if AskUserQuestion is not available in your environment):
+- Stop and ask the user explicitly: "Which backends do you want to use for review? Options: codex, claude, gemini. Default: all three."
+- Wait for user response before proceeding
 
 ### Step 3: Build & Execute Parallel Review
 
-Construct a single `code-router --parallel` invocation.
+Construct a single `code-router --parallel` invocation. All backends run the **same comprehensive review prompt**.
 
-**Template (3 reviewers — has_ui = true)**:
+**Template (3 backends)**:
 
 ```bash
 code-router --parallel --backend codex <<'EOF'
 ---TASK---
-id: logic
+id: review_codex
 backend: codex
 ---CONTENT---
-You are "The Logic Reviewer."
+You are a code reviewer. Perform a comprehensive review of the target code.
 
-Review the following code with these priorities:
-1. Design patterns and SOLID principle violations
-2. Performance bottlenecks and algorithmic complexity
-3. Race conditions and concurrency issues
-4. Unnecessary coupling and dependency problems
+Focus on:
+1. Security vulnerabilities (injection, auth bypass, data exposure)
+2. Logic errors and bugs
+3. Performance issues
+4. Error handling completeness
+5. Code quality and maintainability
+6. Potential edge cases
 
 Target: [@ file references]
 
-Output format — use EXACTLY this structure:
-## Logic Review Findings
+Output format:
+## Code Review Findings
 For each finding:
 - **[CRITICAL|WARNING|INFO]**: one-line summary
-  - Location: file:line or file:function
+  - Location: file:line
   - Detail: what is wrong and why it matters
-  - Suggestion: concrete fix or improvement
+  - Suggestion: concrete fix
 
 ---TASK---
-id: spec
+id: review_claude
 backend: claude
 ---CONTENT---
-You are "The Spec Reviewer."
+You are a code reviewer. Perform a comprehensive review of the target code.
 
-Review the following code with these priorities:
-1. Edge cases and boundary conditions not handled
-2. Error handling gaps (missing catch, unhandled rejections, unchecked returns, etc.)
-3. Type safety issues and potential null/undefined access
-4. Naming inconsistencies and API contract clarity
-5. Missing, outdated, or misleading documentation
+Focus on:
+1. Security vulnerabilities (injection, auth bypass, data exposure)
+2. Logic errors and bugs
+3. Performance issues
+4. Error handling completeness
+5. Code quality and maintainability
+6. Potential edge cases
 
 Target: [@ file references]
 
-Output format — use EXACTLY this structure:
-## Spec Review Findings
+Output format:
+## Code Review Findings
 For each finding:
 - **[CRITICAL|WARNING|INFO]**: one-line summary
-  - Location: file:line or file:function
+  - Location: file:line
   - Detail: what is wrong and why it matters
-  - Suggestion: concrete fix or improvement
+  - Suggestion: concrete fix
 
 ---TASK---
-id: ux
+id: review_gemini
 backend: gemini
 ---CONTENT---
-You are "The UX Reviewer."
+You are a code reviewer. Perform a comprehensive review of the target code.
 
-Review the following code with these priorities:
-1. Accessibility: missing ARIA labels, keyboard navigation, screen reader support
-2. Responsive design: breakpoint handling, mobile-first issues
-3. UI state completeness: loading, error, empty, success states all handled
-4. Visual consistency with design system conventions
+Focus on:
+1. Security vulnerabilities (injection, auth bypass, data exposure)
+2. Logic errors and bugs
+3. Performance issues
+4. Error handling completeness
+5. Code quality and maintainability
+6. Potential edge cases
 
 Target: [@ file references]
 
-Output format — use EXACTLY this structure:
-## UX Review Findings
+Output format:
+## Code Review Findings
 For each finding:
 - **[CRITICAL|WARNING|INFO]**: one-line summary
-  - Location: file:line or file:function
+  - Location: file:line
   - Detail: what is wrong and why it matters
-  - Suggestion: concrete fix or improvement
-
----TASK---
-id: synthesis
-dependencies: logic, spec, ux
-backend: claude
----CONTENT---
-You are the Review Synthesizer. Merge the review reports from logic, spec, and ux into one unified report.
-
-Rules:
-1. Deduplicate: if multiple reviewers flag the same issue, merge into one entry and note which reviewers agree
-2. Resolve conflicts: if reviewers disagree, present both perspectives fairly
-3. Rank by severity: CRITICAL first, then WARNING, then INFO
-4. Group findings by file, not by reviewer
-5. Prepend a summary: total counts by severity, top 3 most impactful issues
-
-Output: a single markdown report titled "## Code Council — Synthesized Review"
+  - Suggestion: concrete fix
 EOF
 ```
 
-**Template (2 reviewers — has_ui = false)**:
+**Template (2 backends)**: Omit one `---TASK---` block
 
-Same as above but **omit the `ux` task entirely** and change the synthesis dependencies to `logic, spec`.
+**Template (1 backend)**: Use single `---TASK---` block
 
-```bash
-code-router --parallel --backend codex <<'EOF'
----TASK---
-id: logic
-backend: codex
----CONTENT---
-[same as above]
+### Step 4: Host Agent Verification & Synthesis (MANDATORY — DO NOT SKIP)
 
----TASK---
-id: spec
-backend: claude
----CONTENT---
-[same as above]
-
----TASK---
-id: synthesis
-dependencies: logic, spec
-backend: claude
----CONTENT---
-You are the Review Synthesizer. Merge the review reports from logic and spec into one unified report.
-
-Rules:
-1. Deduplicate: if multiple reviewers flag the same issue, merge into one entry and note which reviewers agree
-2. Resolve conflicts: if reviewers disagree, present both perspectives fairly
-3. Rank by severity: CRITICAL first, then WARNING, then INFO
-4. Group findings by file, not by reviewer
-5. Prepend a summary: total counts by severity, top 3 most impactful issues
-
-Output: a single markdown report titled "## Code Council — Synthesized Review"
-EOF
-```
-
-### Step 4: Host Agent Final Review (MANDATORY — DO NOT SKIP)
-
-After code-router returns, the host agent MUST perform its own review pass before presenting to the user.
+After code-router returns, the host agent MUST verify findings and synthesize the final report.
 
 Note: each code-router task is a full AI agent with complete filesystem access — it can read any file, run git commands, and explore the entire project. Tasks are NOT "blind" to the project. What they lack is the **user's conversation context** — the host agent knows what the user has been discussing, their priorities, and their intent.
 
 **Why this step exists**:
-- **User context**: The host agent carries the ongoing conversation — it knows what the user cares about, prior discussions, and implicit priorities that code-router tasks never see
+- **User context**: The host agent carries the ongoing conversation — it knows what the user cares about, prior discussions, and implicit priorities
+- **Verification**: Backends may produce false positives or miss real issues — the host agent must verify each finding
 - **Interactive ability**: The host agent can ask the user follow-up questions; code-router tasks are fire-and-forget
-- **Quality gate**: Raw synthesis output should be reviewed and organized before presenting to the user, not dumped as-is
+- **Quality gate**: Raw outputs should be verified and synthesized, not dumped as-is
 
 **What the host agent does**:
 
-1. **Read the synthesized report** from code-router output
-2. **Sanity-check findings** against user context:
-   - Is the severity appropriate given what the user is working on?
-   - Are any findings irrelevant to the user's current goal? If so, deprioritize (don't remove)
-3. **Organize for the user**: Present findings prioritized by what matters most to this user in this context:
-   - Top 3-5 actionable items highlighted at the top
-   - Full findings list grouped by file
-4. **Be ready to discuss**: The user may challenge or ask about specific findings — the host agent should be prepared to dig deeper
+1. **Read all review outputs** from each backend
+2. **Deduplicate**: merge findings that point to the same issue, note which backends agree
+3. **Verify each finding**:
+   - Re-examine the code to confirm the issue is real
+   - If a finding is false positive, mark it and explain why
+   - If backends missed something, add your own findings
+4. **Rank by severity**: CRITICAL first, then WARNING, then INFO
+5. **Group by file**
+6. **Output final report** titled "## Code Council — Verified Review"
+   - Include a summary: total counts by severity
+   - Note which backends reported each finding
 
 ### Step 5: Offer Follow-up Actions
 
@@ -225,20 +164,6 @@ After presenting, offer concrete next steps:
 - **Fix critical issues**: generate fix tasks and run them through code-router
 - **Review more files**: restart the workflow on another target
 - **Save report**: write to a file if the user wants a record
-
-## Backend Routing
-
-Default preferred mapping:
-- `logic` → `codex`
-- `spec` → `claude`
-- `ux` → `gemini`
-- `synthesis` → `claude`
-
-Fallback rules (same as code-router convention):
-- If preferred backend is unavailable, fall back by priority: `codex` → `claude` → `gemini`
-- If user says "use only X": all reviewers use that backend — **different prompts still provide distinct perspectives**
-
-Note: Claude is a strong general-purpose reviewer. When only `claude` is available, it handles all roles effectively. Do not treat it as limited to spec review.
 
 ## Severity Definitions
 
@@ -252,22 +177,15 @@ Note: Claude is a strong general-purpose reviewer. When only `claude` is availab
 - Still run the full council — small code can have critical issues
 - Reviewers will naturally produce fewer findings
 
-**No backend explicitly requested by user**:
-- Use the default preferred mapping above
-
 **User provides a git diff instead of files**:
 - Capture the diff content, pass it inline in the `---CONTENT---` sections instead of `@` file references
 - Adjust reviewer prompts to focus on "changes" rather than "code"
 
-**Target has mixed UI and non-UI files**:
-- Activate UX reviewer, but scope it to only the UI-relevant files
-- Logic and Spec reviewers still review all files
-
 ## Critical Rules
 
-1. **NEVER skip Step 4 (host agent final review)** — this is the core value proposition
-2. **NEVER force UX review on non-UI code** — respect the detection result
-3. **NEVER kill code-router processes** — follow all process management rules from the code-router skill
+1. **MUST perform Step 4 (verification & synthesis)** — this is the core value proposition
+2. **MUST use code-router skill** — this skill depends on code-router's `--parallel` execution
+3. **MUST be called by host agent only** — this skill is NOT designed for sub-agent use
 4. **NEVER modify source code in this skill** — code-council is read-only; fixes go through a separate action
 
 ## Example Invocations
@@ -287,7 +205,7 @@ Run code-council on the uncommitted changes
 code-council audit @src/payments/
 ```
 
-**Single backend mode**:
+**Use specific backends**:
 ```
-Run code-council on @src/core/ using only claude
+Run code-council on @src/core/ using only codex and claude
 ```
