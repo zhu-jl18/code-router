@@ -13,6 +13,7 @@ from pathlib import Path
 
 DEFAULT_INSTALL_DIR = "~/.code-router"
 BACKENDS = ("codex", "claude", "gemini")
+LEGACY_PROMPT_FILES = ("copilot-prompt.md",)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -79,8 +80,13 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Removed: {path}")
 
     wrapper_dir = install_dir / "prompts"
-    for backend in BACKENDS:
-        _unlink(wrapper_dir / f"{backend}-prompt.md")
+    prompt_files = [f"{backend}-prompt.md" for backend in BACKENDS]
+    prompt_files.extend(LEGACY_PROMPT_FILES)
+    for prompt_file in prompt_files:
+        path = wrapper_dir / prompt_file
+        if _unlink(path):
+            removed += 1
+            print(f"Removed: {path}")
     _rmdir_if_empty(wrapper_dir)
 
     _rmdir_if_empty(install_dir / "bin")

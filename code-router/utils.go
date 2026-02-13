@@ -80,7 +80,7 @@ func defaultPromptFileForBackend(backendName string) string {
 	}
 
 	switch backend {
-	case "codex", "claude", "gemini", "copilot":
+	case "codex", "claude", "gemini":
 		return filepath.Join(base, backend+"-prompt.md")
 	default:
 		return ""

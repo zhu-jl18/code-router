@@ -65,7 +65,6 @@ var backendRegistry = map[string]Backend{
 	"codex":   CodexBackend{},
 	"claude":  ClaudeBackend{},
 	"gemini":  GeminiBackend{},
-	"copilot": CopilotBackend{},
 }
 
 func selectBackend(name string) (Backend, error) {
@@ -272,7 +271,7 @@ func parseArgs() (*Config, error) {
 		return nil, fmt.Errorf("task required")
 	}
 	if !backendSpecified {
-		return nil, fmt.Errorf("--backend is required (supported: codex, claude, gemini, copilot)")
+		return nil, fmt.Errorf("--backend is required (supported: codex, claude, gemini)")
 	}
 	args = filtered
 

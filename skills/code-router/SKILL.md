@@ -1,23 +1,22 @@
 ---
 name: code-router
-description: Execute code-router for multi-backend AI code tasks. Supports Codex, Claude, Gemini, Copilot, with file references (@syntax) and structured output.
+description: Execute code-router for multi-backend AI code tasks. Supports Codex, Claude, Gemini, with file references (@syntax) and structured output.
 ---
 
 # code-router Integration
 
 ## Overview
 
-Execute code-router commands with pluggable AI backends (Codex, Claude, Gemini, Copilot). Supports file references via `@` syntax, parallel task execution with backend selection, and configurable security controls.
+Execute code-router commands with pluggable AI backends (Codex, Claude, Gemini). Supports file references via `@` syntax, parallel task execution with backend selection, and configurable security controls.
 
 ## When to Use
 
-When the user explicitly requests a specific backend (Codex, Claude, Gemini, or Copilot), mentions code-router, or when a skill or command definition explicitly declares a dependency on this skill.
+When the user explicitly requests a specific backend (Codex, Claude, or Gemini), mentions code-router, or when a skill or command definition explicitly declares a dependency on this skill.
 
 Applicable scenarios include but are not limited to:
 - Complex code analysis requiring deep understanding
 - Large-scale refactoring across multiple files
 - Automated code generation with backend selection
-- Quick repository reading, explanation, and translation tasks
 
 
 ## Typical Usage for One-Round/New Tasks:
@@ -34,7 +33,6 @@ EOF
 code-router --backend codex "simple task" [working_dir]
 code-router --backend claude "simple task" [working_dir]
 code-router --backend gemini "simple task" [working_dir]
-code-router --backend copilot "simple task" [working_dir]
 ```
 
 ## Common Parameters
@@ -47,7 +45,7 @@ code-router --backend copilot "simple task" [working_dir]
   - Resume uses its own forms: inline `code-router --backend <backend> resume <session_id> "<follow-up task>"` and stdin `code-router --backend <backend> resume <session_id> -`.
 
 - `--backend <backend>` (required)
-  - Select backend explicitly: `codex | claude | gemini | copilot`.
+  - Select backend explicitly: `codex | claude | gemini`.
   - Must be present in both new and resume modes.
   - In parallel mode, this is the global default backend.
   - If a task block defines `backend`, it overrides the global default for that task.
@@ -67,7 +65,7 @@ code-router --backend copilot "simple task" [working_dir]
   - **Summary (default)**: Structured report with changes, output, verification, and review summary.
   - **Full (`--full-output`)**: Complete task messages. Use only when debugging specific failures.
   - Scope: `--full-output` is valid only with `--parallel`; single-task mode does not support this flag.
-  - Backend behavior: mode selection is wrapper-level and works the same for `codex | claude | gemini | copilot`.
+  - Backend behavior: mode selection is wrapper-level and works the same for `codex | claude | gemini`.
 
 ## Return Format:
 
@@ -90,7 +88,6 @@ Quick look at the differences between backends:
 | codex | `--backend codex` | OpenAI Codex (default) | Code analysis, complex development, debugging |
 | claude | `--backend claude` | Anthropic Claude | Quick fixes, documentation, prompts |
 | gemini | `--backend gemini` | Google Gemini | UI/UX prototyping |
-| copilot | `--backend copilot` | GitHub Copilot CLI | Fast repository reading, explanation, translation, lightweight Q&A |
 
 For detailed guidance:
 
@@ -112,19 +109,13 @@ For detailed guidance:
 - Interactive element generation with accessibility support
 - Example: "Create a responsive dashboard layout with sidebar navigation and data visualization cards"
 
-**Copilot**:
-- Fast repository reading and context summarization
-- Explanation and translation tasks (docs/comments/specs)
-- Lightweight Q&A where short turnaround matters
-- Example: "Read @README.md and @docs/api.md, then explain the architecture in plain Chinese"
-
 A Typical Backend Switching Example:
 - Start with Codex for analysis, switch to Claude for documentation, then Gemini for UI implementation.
 - Use per-task backend selection in parallel mode to optimize for each task's strengths
 
 ## Resume Session
 
-Supported backends all support resume mode: `codex | claude | gemini | copilot`.
+Supported backends all support resume mode: `codex | claude | gemini`.
 
 **1) Standard resume (HEREDOC)**
 ```bash
@@ -205,12 +196,6 @@ id: ui-draft
 backend: gemini
 ---CONTENT---
 draft UI layout from the same requirements
-
----TASK---
-id: explain
-backend: copilot
----CONTENT---
-explain findings in simpler language for onboarding docs
 EOF
 ```
 
@@ -276,13 +261,6 @@ backend: gemini
 dependencies: task2
 ---CONTENT---
 generate implementation code
-
----TASK---
-id: task4
-backend: copilot
-dependencies: task1
----CONTENT---
-explain task1 findings in simple language for onboarding docs
 EOF
 ```
 
@@ -332,7 +310,7 @@ Host-agnostic tool-call template (field names vary by runtime):
 Field names depend on the host tool schema.
 Timeout policy: always set explicit timeout by task complexity; do not rely on implicit defaults.
 
-Note: `--backend` is required; supported values: `codex | claude | gemini | copilot`
+Note: `--backend` is required; supported values: `codex | claude | gemini`
 ```
 
 **Parallel Tasks**:
@@ -397,7 +375,7 @@ Note: Global --backend is required; per-task backend is optional
 - Hard rule: kill/terminate is allowed **only when the user explicitly requests it**.
 - Do not kill processes automatically because of long runtime or wait timeout.
 - Use staged termination and stop escalation as soon as processes exit.
-- Name-based global cleanup (`pkill -x codex/claude/gemini/copilot`) is prohibited.
+- Name-based global cleanup (`pkill -x codex/claude/gemini`) is prohibited.
 
 1. **Graceful stop wrapper first**:
    ```bash
@@ -431,5 +409,5 @@ Note: Global --backend is required; per-task backend is optional
 4. **Post-check**:
    ```bash
    pgrep -fa code-router
-   pgrep -fa 'codex|claude|gemini|copilot'
+   pgrep -fa 'codex|claude|gemini'
    ```

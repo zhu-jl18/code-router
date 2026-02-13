@@ -23,7 +23,6 @@ The wrapper does not read these control options from shell environment variables
 |---|---|---|---|
 | `codex` | `--dangerously-bypass-approvals-and-sandbox` | enabled by default | set `CODEX_BYPASS_SANDBOX=false` in `.env` |
 | `claude` | `--dangerously-skip-permissions` | enabled by default | set `CODE_ROUTER_SKIP_PERMISSIONS=false` in `.env` |
-| `copilot` | `--allow-all` | enabled by default | set `CODE_ROUTER_SKIP_PERMISSIONS=false` in `.env` |
 | `gemini` | `-y` (`--yolo`) | always enabled in current wrapper | no wrapper toggle currently |
 
 Notes:
@@ -39,9 +38,9 @@ Notes:
   - unset/true => wrapper appends codex dangerous bypass flag
   - false => wrapper does not append codex dangerous bypass flag
 
-- `CODE_ROUTER_SKIP_PERMISSIONS` (claude/copilot)
-  - unset/true => claude appends `--dangerously-skip-permissions`, copilot appends `--allow-all`
-  - false => claude keeps permission prompts, copilot drops `--allow-all`
+- `CODE_ROUTER_SKIP_PERMISSIONS` (claude)
+  - unset/true => claude appends `--dangerously-skip-permissions`
+  - false => claude keeps permission prompts
 
 ### Runtime Controls
 
@@ -72,7 +71,7 @@ Prompt files are resolved from:
 ~/.code-router/prompts/<backend>-prompt.md
 ```
 
-Supported backends: `codex`, `claude`, `gemini`, `copilot`.
+Supported backends: `codex`, `claude`, `gemini`.
 
 ## 4) Parallel Propagation Rule (`skip_permissions`)
 
