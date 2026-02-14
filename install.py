@@ -86,11 +86,8 @@ def _install_env_template(install_dir: Path, *, force: bool) -> None:
     env_template = (
         "# code-router runtime config\n"
         "# Values are loaded only from this file.\n\n"
-        "# CODEX_TIMEOUT in milliseconds (default: 7200000)\n"
-        "CODEX_TIMEOUT=7200000\n\n"
-        "# true/false controls\n"
-        "CODEX_BYPASS_SANDBOX=true\n"
-        "CODE_ROUTER_SKIP_PERMISSIONS=true\n"
+        "# CODE_ROUTER_TIMEOUT in seconds (default: 7200)\n"
+        "CODE_ROUTER_TIMEOUT=7200\n\n"
         "CODE_ROUTER_ASCII_MODE=false\n"
         "CODE_ROUTER_MAX_PARALLEL_WORKERS=0\n"
         "CODE_ROUTER_LOGGER_CLOSE_TIMEOUT_MS=5000\n\n"

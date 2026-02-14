@@ -6,11 +6,10 @@
 
 Fork notice:
 - This is a personal, heavily simplified fork derived from `cexll/myclaude`.
-- Scope: `/dev` workflow + `code-router` + PRD skill. Everything else is intentionally removed.
+- Scope: `/dev` workflow + `code-router`. Everything else is intentionally removed.
 
 What you get:
 - `/dev` workflow (requirements -> plan -> parallel execution -> verification)
-- `product-requirements` skill (PRD generator)
 - `code-council` skill (multi-perspective parallel code review with host agent final pass)
 - `code-router` (Go executor; backends: `codex` / `claude` / `gemini`; core: `--parallel`)
 
@@ -81,11 +80,6 @@ Runtime behavior (approval/bypass flags, timeout, parallel propagation rules):
 In Claude Code:
 ```text
 /dev "implement X"
-```
-
-PRD:
-```text
-/product-requirements "write a PRD for feature X"
 ```
 
 Code review:

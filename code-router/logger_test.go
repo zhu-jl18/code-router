@@ -533,7 +533,7 @@ func TestLoggerCoverageSuite(t *testing.T) {
 		{"TestBackendParseArgs_NewMode", TestBackendParseArgs_NewMode},
 		{"TestBackendParseArgs_ResumeMode", TestBackendParseArgs_ResumeMode},
 		{"TestBackendParseArgs_BackendFlag", TestBackendParseArgs_BackendFlag},
-		{"TestBackendParseArgs_SkipPermissions", TestBackendParseArgs_SkipPermissions},
+		{"TestBackendParseArgs_SkipPermissionsRejected", TestBackendParseArgs_SkipPermissionsRejected},
 		{"TestBackendParseBoolFlag", TestBackendParseBoolFlag},
 		{"TestBackendEnvFlagEnabled", TestBackendEnvFlagEnabled},
 		{"TestRunResolveTimeout", TestRunResolveTimeout},

@@ -9,7 +9,6 @@
 你会得到什么（Key Concepts）：
 - `/dev` 工作流：需求澄清 → 计划 → 并行执行 → 验证
 - `code-router`：Go 写的执行器；统一 3 个后端 `codex/claude/gemini`；核心机制 `--parallel`
-- `product-requirements` skill：PRD 生成
 - `code-council` skill：多视角并行代码评审（2-3 个 AI reviewer 并行 + host agent 终审）
 
 ## 后端定位（推荐）
@@ -82,11 +81,6 @@ bash scripts/build-dist.sh
 在 Claude Code 里：
 ```text
 /dev "实现 X"
-```
-
-PRD：
-```text
-/product-requirements "为功能 X 写 PRD"
 ```
 
 代码评审：
