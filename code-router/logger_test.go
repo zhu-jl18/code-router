@@ -518,7 +518,7 @@ func TestLoggerCoverageSuite(t *testing.T) {
 	}{
 		{"TestBackendParseJSONStream_CoverageSuite", TestBackendParseJSONStream_CoverageSuite},
 		{"TestVersionCoverageFullRun", TestVersionCoverageFullRun},
-		{"TestVersionMainWrapper", TestVersionMainWrapper},
+		{"TestMainWrapperHelp", TestMainWrapperHelp},
 
 		{"TestExecutorHelperCoverage", TestExecutorHelperCoverage},
 		{"TestExecutorRunCodexTaskWithContext", TestExecutorRunCodexTaskWithContext},

@@ -3375,54 +3375,6 @@ noop`)
 	}
 }
 
-func TestVersionFlag(t *testing.T) {
-	defer resetTestHooks()
-	os.Args = []string{"code-router", "--version"}
-	output := captureOutput(t, func() {
-		if code := run(); code != 0 {
-			t.Errorf("exit = %d, want 0", code)
-		}
-	})
-
-	want := "code-router version 1.0.0\n"
-
-	if output != want {
-		t.Fatalf("output = %q, want %q", output, want)
-	}
-}
-
-func TestVersionShortFlag(t *testing.T) {
-	defer resetTestHooks()
-	os.Args = []string{"code-router", "-v"}
-	output := captureOutput(t, func() {
-		if code := run(); code != 0 {
-			t.Errorf("exit = %d, want 0", code)
-		}
-	})
-
-	want := "code-router version 1.0.0\n"
-
-	if output != want {
-		t.Fatalf("output = %q, want %q", output, want)
-	}
-}
-
-func TestVersionLegacyAlias(t *testing.T) {
-	defer resetTestHooks()
-	os.Args = []string{"code-router", "--version"}
-	output := captureOutput(t, func() {
-		if code := run(); code != 0 {
-			t.Errorf("exit = %d, want 0", code)
-		}
-	})
-
-	want := "code-router version 1.0.0\n"
-
-	if output != want {
-		t.Fatalf("output = %q, want %q", output, want)
-	}
-}
-
 func TestRun_Help(t *testing.T) {
 	defer resetTestHooks()
 	os.Args = []string{"code-router", "--help"}
@@ -3444,19 +3396,6 @@ func TestRun_HelpDoesNotTriggerCleanup(t *testing.T) {
 	os.Args = []string{"code-router", "--help"}
 	cleanupLogsFn = func() (CleanupStats, error) {
 		t.Fatalf("cleanup should not run for --help")
-		return CleanupStats{}, nil
-	}
-
-	if code := run(); code != 0 {
-		t.Fatalf("exit = %d, want 0", code)
-	}
-}
-
-func TestVersionDoesNotTriggerCleanup(t *testing.T) {
-	defer resetTestHooks()
-	os.Args = []string{"code-router", "--version"}
-	cleanupLogsFn = func() (CleanupStats, error) {
-		t.Fatalf("cleanup should not run for --version")
 		return CleanupStats{}, nil
 	}
 
@@ -3708,11 +3647,11 @@ task`)
 	})
 }
 
-func TestVersionMainWrapper(t *testing.T) {
+func TestMainWrapperHelp(t *testing.T) {
 	defer resetTestHooks()
 	exitCalled := -1
 	exitFn = func(code int) { exitCalled = code }
-	os.Args = []string{"code-router", "--version"}
+	os.Args = []string{"code-router", "--help"}
 	main()
 	if exitCalled != 0 {
 		t.Fatalf("main exit = %d, want 0", exitCalled)
@@ -4424,18 +4363,14 @@ func TestBackendRunCoverage(t *testing.T) {
 		{"NoArgs", TestRun_NoArgs},
 		{"CommandFails", TestRun_CommandFails},
 		{"CleanupHookAlwaysCalled", TestRun_CleanupHookAlwaysCalled},
-		{"VersionFlag", TestVersionFlag},
-		{"VersionShortFlag", TestVersionShortFlag},
-		{"VersionLegacyAlias", TestVersionLegacyAlias},
 		{"Help", TestRun_Help},
 		{"HelpShort", TestRun_HelpShort},
 		{"HelpDoesNotTriggerCleanup", TestRun_HelpDoesNotTriggerCleanup},
-		{"VersionDoesNotTriggerCleanup", TestVersionDoesNotTriggerCleanup},
 		{"VersionCoverageFullRun", TestVersionCoverageFullRun},
 		{"ExplicitStdinEmpty", TestRun_ExplicitStdinEmpty},
 		{"ExplicitStdinReadError", TestRun_ExplicitStdinReadError},
 		{"PipedTaskReadError", TestRun_PipedTaskReadError},
-		{"VersionMainWrapper", TestVersionMainWrapper},
+		{"MainWrapperHelp", TestMainWrapperHelp},
 	}
 
 	for _, tc := range suite {

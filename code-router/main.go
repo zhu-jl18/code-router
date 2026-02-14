@@ -14,7 +14,6 @@ import (
 )
 
 const (
-	version               = "1.0.0"
 	defaultWorkdir        = "."
 	defaultTimeout        = 7200 // seconds (2 hours)
 	defaultCoverageTarget = 90.0
@@ -112,12 +111,9 @@ func main() {
 // run is the main logic, returns exit code for testability
 func run() (exitCode int) {
 	name := currentWrapperName()
-	// Handle --version and --help first (no logger needed)
+	// Handle --help first (no logger needed)
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
-		case "--version", "-v":
-			fmt.Printf("%s version %s\n", name, version)
-			return 0
 		case "--help", "-h":
 			printHelp()
 			return 0
@@ -584,7 +580,6 @@ Usage:
 	%[1]s --backend <backend> resume <session_id> -     Read follow-up task from stdin
 	%[1]s --parallel --backend <backend>               Run tasks in parallel (config from stdin)
 	%[1]s --parallel --backend <backend> --full-output Run tasks in parallel with full output (legacy)
-	%[1]s --version
 	%[1]s --help
 
 Supported backends:

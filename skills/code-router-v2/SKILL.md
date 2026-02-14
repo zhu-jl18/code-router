@@ -47,7 +47,6 @@ EOF
 
 **Utility:**
 ```bash
-code-router --version
 code-router --help
 code-router --cleanup          # Remove orphaned log files from temp dir
 ```
@@ -99,7 +98,6 @@ Supported: `codex | claude | gemini`. Per-task `backend` override in parallel mo
 Tasks with `dependencies` run as a DAG:
 
 ```text
-layer 0:
 layer 0: task1      taskX       (concurrent)
            |          |
 layer 1: task2      taskY       (concurrent)

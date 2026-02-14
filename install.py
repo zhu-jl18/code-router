@@ -90,10 +90,7 @@ def _install_env_template(install_dir: Path, *, force: bool) -> None:
         "CODE_ROUTER_TIMEOUT=7200\n\n"
         "CODE_ROUTER_ASCII_MODE=false\n"
         "CODE_ROUTER_MAX_PARALLEL_WORKERS=0\n"
-        "CODE_ROUTER_LOGGER_CLOSE_TIMEOUT_MS=5000\n\n"
-        "# backend credentials (examples)\n"
-        "# ANTHROPIC_API_KEY=\n"
-        "# GEMINI_API_KEY=\n"
+        "CODE_ROUTER_LOGGER_CLOSE_TIMEOUT_MS=5000\n"
     )
     _write_if_missing(install_dir / ".env", env_template, force=force)
 
