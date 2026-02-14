@@ -31,7 +31,7 @@ python3 install.py
 Optional:
 ```bash
 python3 install.py --install-dir ~/.code-router --force
-python3 install.py --skip-wrapper
+python3 install.py --skip-router
 python3 install.py --repo zhu-jl18/code-router --release-tag latest
 ```
 
@@ -47,8 +47,8 @@ Not automated (manual by design):
   - **/dev command (Claude Code, etc.)**: use `dev-workflow/commands/dev.md` and `dev-workflow/agents/*`
 
 Notes:
-- `install.py` requires network access to GitHub Releases for wrapper installation.
-- Use `--skip-wrapper` if you only need runtime config/assets.
+- `install.py` requires network access to GitHub Releases for binary installation.
+- Use `--skip-router` if you only need runtime config/assets.
 
 ## Local Build (Optional)
 
@@ -69,7 +69,7 @@ Default prompt placeholder files:
 - `~/.code-router/prompts/gemini-prompt.md`
 
 Behavior:
-- Wrapper loads the per-backend prompt and prepends it only if it has non-empty content.
+- code-router loads the per-backend prompt and prepends it only if it has non-empty content.
 - Empty/whitespace-only or missing prompt files behave like "no injection".
 
 Runtime behavior (approval/bypass flags, timeout, parallel propagation rules):
