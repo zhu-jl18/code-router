@@ -80,7 +80,7 @@ Validation: Lines without `:` are silently ignored. Unknown keys with `:` cause 
 ## Return Format
 
 Single-task mode:
-```
+```text
 Agent response text...
 
 ---
@@ -96,10 +96,10 @@ Parallel mode: Structured execution report (summary mode) or full per-task messa
 Supported: `codex | claude | gemini`. Per-task `backend` override in parallel mode allows mixed-backend execution.
 
 ## DAG Scheduling (Parallel Mode)
-
 Tasks with `dependencies` run as a DAG:
 
-```
+```text
+layer 0:
 layer 0: task1      taskX       (concurrent)
            |          |
 layer 1: task2      taskY       (concurrent)
@@ -136,7 +136,7 @@ layer 2:      task3             (waits for both)
    ```bash
    # Log path is printed to stderr at startup
    # Format: $TMPDIR/code-router-{PID}[-{taskID}].log
-   tail -f /tmp/code-router-*.log
+   tail -f "$TMPDIR"/code-router-*.log
    ```
 
 2. **Check process without killing:**

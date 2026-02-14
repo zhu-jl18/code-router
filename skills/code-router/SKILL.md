@@ -343,15 +343,15 @@ Note: Global --backend is required; per-task backend is optional
    ```bash
    # Log path is printed to stderr at startup
    # Format: $TMPDIR/code-router-{PID}[-{taskID}].log
-   tail -f /tmp/code-router-*.log
+   tail -f "$TMPDIR"/code-router-*.log
    ```
 
 2. **Wait with tiered timeout (host-runtime API)**:
   - Use the host runtime's blocking wait API (for example: TaskOutput/wait-result equivalents).
   - Choose timeout by complexity:
-    - Simple: `600000` (10m)
-    - Normal: `1800000` (30m)
-    - Complex Codex: `7200000` (2h)
+    - Simple: `600` s (10m)
+    - Normal: `1800` s (30m)
+    - Complex Codex: `7200` s (2h)
   - If the wait call times out, do not kill the process; re-check logs/process and continue waiting.
 
   - Pseudocode (adapt field names to your host runtime):

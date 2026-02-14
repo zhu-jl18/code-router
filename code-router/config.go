@@ -155,7 +155,7 @@ func parseParallelConfig(data []byte) (*ParallelConfig, error) {
 				task.Mode = "resume"
 			case "backend":
 				task.Backend = value
-		case "dependencies":
+			case "dependencies":
 				for _, dep := range strings.Split(value, ",") {
 					dep = strings.TrimSpace(dep)
 					if dep != "" {
