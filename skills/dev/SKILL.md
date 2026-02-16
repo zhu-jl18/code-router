@@ -1,222 +1,121 @@
 ---
 name: dev
-description: Extreme lightweight end-to-end development workflow with requirements clarification, deterministic backend routing, parallel code-dispatcher execution, and mandatory 90% test coverage
+description: End-to-end development workflow orchestrator. Triggers on /dev command or when the user requests a complete feature implementation cycle with planning, parallel execution, and test validation. Orchestrates 7 steps: backend selection → requirements → code-dispatcher analysis → dev plan → parallel execution → coverage validation (≥90%) → summary. All code changes and codebase analysis are delegated to code-dispatcher. Depends on code-dispatcher or code-dispatcher-flash skill.
 ---
 
-You are the /dev Workflow Orchestrator, an expert development workflow manager specializing in orchestrating minimal, efficient end-to-end development processes with parallel task execution and rigorous test coverage validation.
+# /dev Workflow
 
----
+## Hard Rules
 
-## CRITICAL CONSTRAINTS (NEVER VIOLATE)
+1. ALL code changes go through code-dispatcher — never edit files directly
+2. ALL backend calls go through code-dispatcher — never invoke codex/claude/gemini directly
+3. Steps 0 and 1 require user input before continuing
+4. Step 3 requires explicit user confirmation before Step 4
 
-These rules have HIGHEST PRIORITY and override all other instructions:
+Violation → stop and restart.
 
-1. **NEVER modify files directly** - ALL code changes MUST go through code-dispatcher
-2. **MUST ask the user in Step 0** - Backend selection MUST be the FIRST action (before requirement clarification)
-3. **MUST ask the user in Step 1** - Do NOT skip requirement clarification
-4. **MUST create a task list after Step 1** - Create task tracking list before any analysis
-5. **MUST use code-dispatcher for Step 2 analysis** - Do NOT do deep analysis by manually exploring the codebase in the host environment
-6. **MUST wait for user confirmation in Step 3** - Do NOT proceed to Step 4 without explicit approval
-7. **MUST invoke code-dispatcher --parallel --backend <backend> for Step 4 execution** - Run it via a shell/terminal; do NOT apply direct edits outside code-dispatcher
-8. **NEVER invoke backend CLIs directly** - `codex` / `claude` / `gemini` must only be invoked through `code-dispatcher`
+## Step 0: Backend Selection [FIRST ACTION]
 
-**Violation of any constraint above invalidates the entire workflow. Stop and restart if violated.**
+Ask which backends are allowed for this run (multi-select):
+- `codex` — complex logic, refactoring, debugging (default)
+- `claude` — quick fixes, config, docs
+- `gemini` — UI/UX, styling, components
 
----
+Store as `allowed_backends`. If only codex selected → all tasks forced to codex.
+Guidance: for non-trivial logic or multi-file refactors, recommend enabling at least codex.
 
-**Core Responsibilities**
-- Orchestrate a streamlined 7-step development workflow (Step 0 + Step 1–6):
-  0. Backend selection (user constrained)
-  1. Requirement clarification through targeted questioning
-  2. Technical analysis using code-dispatcher
-  3. Development documentation generation
-  4. Parallel development execution (backend routing per task type)
-  5. Coverage validation (≥90% requirement)
-  6. Completion summary
+## Step 1: Requirements Clarification
 
-**Workflow Execution**
-- **Step 0: Backend Selection [MANDATORY - FIRST ACTION]**
-  - The FIRST action MUST be to ask the user which backends are allowed for this /dev run (allow multiple selections)
-  - Options (user can select multiple):
-    - `codex` - Stable, high quality, best cost-performance (default for most tasks)
-    - `claude` - Fast, lightweight (for quick fixes and config changes)
-    - `gemini` - UI/UX specialist (for frontend styling and components)
-  - Store the selected backends as `allowed_backends` set for routing in Step 4
-  - All selected backends are routing targets only; execution entry is always `code-dispatcher`
-  - Special rule: if user selects ONLY `codex`, then ALL subsequent tasks (including UI/quick-fix) MUST use `codex` (no exceptions)
-  - Guidance: If the request involves non-trivial logic or multi-file refactors, strongly recommend enabling at least `codex` or `claude`.
+Ask targeted questions on scope, I/O, constraints, testing expectations. 2–3 rounds.
+Create task tracking list before proceeding.
 
-- **Step 1: Requirement Clarification [MANDATORY - DO NOT SKIP]**
-  - MUST ask the user targeted questions
-  - Focus questions on functional boundaries, inputs/outputs, constraints, testing, and required unit-test coverage levels
-  - Iterate 2-3 rounds until clear; rely on judgment; keep questions concise
-  - After clarification complete: MUST create a task tracking list with workflow steps before any analysis
+## Step 2: Analysis via code-dispatcher
 
-- **Step 2: code-dispatcher Deep Analysis (Plan Mode Style) [CODE-DISPATCHER ONLY]**
+Invoke code-dispatcher in a shell (backend: prefer codex from allowed_backends; fallback codex → claude → gemini).
+Do NOT explore the codebase directly — delegate all exploration to code-dispatcher.
 
-  MUST invoke `code-dispatcher` from a shell/terminal for deep analysis. Do NOT call backend CLIs directly. Do NOT do deep analysis by manually exploring the codebase in the host environment - delegate exploration to code-dispatcher.
+```bash
+code-dispatcher --backend {analysis_backend} - <<'EOF'
+Analyze the codebase for implementing [feature].
 
-  **How to invoke for analysis**:
-  ```bash
-  # analysis_backend selection:
-  # - prefer codex if it is in allowed_backends
-  # - otherwise pick the first allowed backend by priority:
-  #   codex -> claude -> gemini
-  code-dispatcher --backend {analysis_backend} - <<'EOF'
-  Analyze the codebase for implementing [feature name].
+Requirements: [from Step 1]
 
-  Requirements:
-  - [requirement 1]
-  - [requirement 2]
+Deliverables:
+1. Codebase structure and existing patterns
+2. Implementation options with trade-offs (if multiple valid approaches)
+3. Architectural decisions with justification
+4. Task breakdown: 2–5 tasks with ID, description, file scope, dependencies, type
+5. UI detection: needs_ui true/false with evidence (.css/.tsx/.vue presence)
+EOF
+```
 
-  Deliverables:
-  1. Explore codebase structure and existing patterns
-  2. Evaluate implementation options with trade-offs
-  3. Make architectural decisions
-  4. Break down into 2-5 parallelizable tasks with dependencies and file scope
-  5. Classify each task with a single `type`: `default` / `ui` / `quick-fix` / `docs`
-  6. Determine if UI work is needed (check for .css/.tsx/.vue files)
+Task types: `default` | `ui` | `quick-fix` | `docs`
 
-  Output the analysis following the structure below.
-  EOF
-  ```
+**Skip when**: single obvious approach, ≤2 files, clear requirements.
 
-  **When Deep Analysis is Needed** (any condition triggers):
-  - Multiple valid approaches exist (e.g., Redis vs in-memory vs file-based caching)
-  - Significant architectural decisions required (e.g., WebSockets vs SSE vs polling)
-  - Large-scale changes touching many files or systems
-  - Unclear scope requiring exploration first
+## Step 3: Development Plan
 
-  **UI Detection Requirements**:
-  - During analysis, output whether the task needs UI work (yes/no) and the evidence
-  - UI criteria: presence of style assets (.css, .scss, styled-components, CSS modules, tailwindcss) OR frontend component files (.tsx, .jsx, .vue)
+Generate `dev-plan.md` following [references/dev-plan-template.md](references/dev-plan-template.md).
+Output path: `.specs/{feature_name}/dev-plan.md`
 
-  **What the AI backend does in Analysis Mode** (when invoked via code-dispatcher):
-  1. **Explore Codebase**: Inspect the codebase (list files, search relevant symbols, read key files) to understand structure, patterns, architecture
-  2. **Identify Existing Patterns**: Find how similar features are implemented, reuse conventions
-  3. **Evaluate Options**: When multiple approaches exist, list trade-offs (complexity, performance, security, maintainability)
-  4. **Make Architectural Decisions**: Choose patterns, APIs, data models with justification
-  5. **Design Task Breakdown**: Produce parallelizable tasks based on natural functional boundaries with file scope and dependencies
+- Present summary to user: task count, types, file scopes, dependency graph, backend routing
+- Ask user to confirm before execution
+- If user wants adjustments → return to Step 1 or Step 2
 
-  **Analysis Output Structure**:
-  ```
-  ## Context & Constraints
-  [Tech stack, existing patterns, constraints discovered]
+## Step 4: Parallel Execution
 
-  ## Codebase Exploration
-  [Key files, modules, patterns found via codebase inspection (file listing, searching, reading)]
+Build ONE `--parallel` config covering all tasks from dev-plan.md. Submit once via code-dispatcher in a shell.
 
-  ## Implementation Options (if multiple approaches)
-  | Option | Pros | Cons | Recommendation |
+**Backend routing by task type**:
+- `default` → codex (fallback: codex → claude → gemini)
+- `ui` → gemini (fallback: codex → claude → gemini)
+- `quick-fix` → claude (fallback: codex → claude → gemini)
+- `docs` → claude (fallback: claude → codex → gemini)
+- Missing type → treat as `default`
 
-  ## Technical Decisions
-  [API design, data models, architecture choices made]
+Fallback only considers `allowed_backends`.
 
-  ## Task Breakdown
-  [2-5 tasks with: ID, description, file scope, dependencies, test command, type(default|ui|quick-fix|docs)]
+```bash
+code-dispatcher --parallel --backend {analysis_backend} <<'EOF'
+---TASK---
+id: task-1
+backend: {routed_backend}
+workdir: .
+dependencies:
+---CONTENT---
+Task: task-1
+Reference: @.specs/{feature_name}/dev-plan.md
+Scope: [file scope from plan]
+Test: [test command from plan]
+Deliverables: code + unit tests + coverage ≥90%
 
-  ## UI Determination
-  needs_ui: [true/false]
-  evidence: [files and reasoning tied to style + component criteria]
-  ```
+---TASK---
+id: task-2
+backend: {routed_backend}
+workdir: .
+dependencies: task-1
+---CONTENT---
+Task: task-2
+Reference: @.specs/{feature_name}/dev-plan.md
+Scope: [file scope from plan]
+Test: [test command from plan]
+Deliverables: code + unit tests + coverage ≥90%
+EOF
+```
 
-  **Skip Deep Analysis When**:
-  - Simple, straightforward implementation with obvious approach
-  - Small changes confined to 1-2 files
-  - Clear requirements with single implementation path
+Use `workdir: .` unless a task requires a specific subdirectory.
 
-- **Step 3: Generate Development Documentation**
-  - Generate the development plan document (`dev-plan.md`)
-  - When creating `dev-plan.md`, ensure every task has `type: default|ui|quick-fix|docs`
-  - Append a dedicated UI task if Step 2 marked `needs_ui: true` but no UI task exists
-  - Output a brief summary of dev-plan.md:
-    - Number of tasks and their IDs
-    - Task type for each task
-    - File scope for each task
-    - Dependencies between tasks
-    - Test commands
-  - Ask the user to confirm:
-    - Question: "Proceed with this development plan?" (state backend routing rules and any forced fallback due to allowed_backends)
-    - Options: "Confirm and execute" / "Need adjustments"
-  - If user chooses "Need adjustments", return to Step 1 or Step 2 based on feedback
+## Step 5: Coverage Validation
 
-- **Step 4: Parallel Development Execution [CODE-DISPATCHER ONLY - NO DIRECT EDITS]**
-  - MUST invoke `code-dispatcher --parallel --backend <backend>` from a shell/terminal for ALL code changes
-  - NEVER invoke `codex` / `claude` / `gemini` directly; route all execution through `code-dispatcher`
-  - NEVER modify code directly outside code-dispatcher
-  - Backend routing (must be deterministic and enforceable):
-    - Task field: `type: default|ui|quick-fix|docs` (missing → treat as `default`)
-    - Preferred backend by type:
-      - `default` → `codex`
-      - `ui` → `gemini` (enforced when allowed)
-      - `quick-fix` → `claude`
-      - `docs` → `claude`
-    - If user selected ONLY `codex`: all tasks MUST use `codex`
-    - If task type is `default|ui|quick-fix`, fallback priority is `codex` → `claude` → `gemini`
-    - If task type is `docs`, fallback priority is `claude` → `codex` → `gemini`
-  - Build ONE `--parallel` config that includes all tasks in `dev-plan.md` and submit it once via a shell/terminal:
-    ```bash
-    # One shot submission - dispatcher handles topology + concurrency
-    code-dispatcher --parallel --backend [analysis_backend] <<'EOF'
-    ---TASK---
-    id: [task-id-1]
-    backend: [routed-backend-from-type-and-allowed_backends]
-    workdir: .
-    dependencies: [optional, comma-separated ids]
-    ---CONTENT---
-    Task: [task-id-1]
-    Reference: @.claude/specs/{feature_name}/dev-plan.md
-    Scope: [task file scope]
-    Test: [test command]
-    Deliverables: code + unit tests + coverage ≥90% + coverage summary
+All tasks must hit ≥90%. Retry failures max 2 rounds, then report to user.
 
-    ---TASK---
-    id: [task-id-2]
-    backend: [routed-backend-from-type-and-allowed_backends]
-    workdir: .
-    dependencies: [optional, comma-separated ids]
-    ---CONTENT---
-    Task: [task-id-2]
-    Reference: @.claude/specs/{feature_name}/dev-plan.md
-    Scope: [task file scope]
-    Test: [test command]
-    Deliverables: code + unit tests + coverage ≥90% + coverage summary
-    EOF
-    ```
-  - **Note**: Use `workdir: .` (current directory) for all tasks unless specific subdirectory is required
-  - Execute independent tasks concurrently; serialize conflicting ones; track coverage reports
-  - Backend is routed deterministically based on task `type`, no manual intervention needed
+## Step 6: Summary
 
-- **Step 5: Coverage Validation**
-  - Validate each task’s coverage:
-    - All ≥90% → pass
-    - Any <90% → request more tests (max 2 rounds)
+Completed tasks, coverage per task, key file changes.
 
-- **Step 6: Completion Summary**
-  - Provide completed task list, coverage per task, key file changes
+## Error Handling
 
-**Error Handling**
-- **code-dispatcher failure**: Retry once with same input; if still fails, log error and ask user for guidance
-- **Insufficient coverage (<90%)**: Request more tests from the failed task (max 2 rounds); if still fails, report to user
-- **Dependency conflicts**:
-  - Circular dependencies: code-dispatcher will detect and fail with error; revise task breakdown to remove cycles
-  - Missing dependencies: Ensure all task IDs referenced in `dependencies` field exist
-- **Parallel execution timeout**: Individual tasks timeout after 2 hours (configurable via CODE_DISPATCHER_TIMEOUT); failed tasks can be retried individually
-- **Backend unavailable**:
-  - For `default|ui|quick-fix`: fallback in `allowed_backends` by `codex` → `claude` → `gemini`
-  - For `docs`: fallback in `allowed_backends` by `claude` → `codex` → `gemini`
-  - If none works, fail with a clear error message
-
-**Quality Standards**
-- Code coverage ≥90%
-- Tasks based on natural functional boundaries (typically 2-5)
-- Each task has exactly one `type: default|ui|quick-fix|docs`
-- Documentation must be minimal yet actionable
-- No verbose implementations; only essential code
-
-**Communication Style**
-- Be direct and concise
-- Report progress at each workflow step
-- Highlight blockers immediately
-- Provide actionable next steps when coverage fails
-- Prioritize speed via parallelization while enforcing coverage validation
+- code-dispatcher failure → retry once → ask user
+- Coverage <90% after retries → report to user
+- Dependency cycles → code-dispatcher detects and fails; revise task breakdown
+- Backend unavailable → follow fallback priority above

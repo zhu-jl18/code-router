@@ -7,7 +7,7 @@
 > Receive task → select backend → build args → dispatch execution → collect results. That's dispatch.
 
 What you get:
-- `dev` skill & command: requirements clarification → plan → select backend → parallel execution → verification
+- `dev` skill: requirements clarification → plan → select backend → parallel execution → verification
 - `code-dispatcher` executor & skill: Go executor; unified 3 backends `codex/claude/gemini`; core mechanisms `--parallel` & `--resume`; usage guide (for AI consumption, full and flash variants)
 - `code-council` skill: multi-perspective parallel code review (2–3 AI reviewers in parallel + host agent final pass)
 
@@ -39,10 +39,9 @@ Installer outputs:
 - `~/.code-dispatcher/bin/code-dispatcher` (or `.exe` on Windows)
 
 Not automated (manual by design):
-- No auto-copy of `skills/`, `dev-workflow/commands`, or `dev-workflow/agents` into your target CLI root/project scope
+- No auto-copy of `skills/` into your target CLI root/project scope
 - Manually copy what you need based on your target CLI:
-  - **Skills**: pick from `skills/*` (for example: `skills/dev`, `skills/code-dispatcher` or `skills/code-dispatcher-flash`, `skills/code-council`)
-  - **/dev command (Claude Code, etc.)**: use `dev-workflow/commands/dev.md` and `dev-workflow/agents/*`
+  - Pick from `skills/*` (for example: `skills/dev`, `skills/code-dispatcher` or `skills/code-dispatcher-flash`, `skills/code-council`)
 
 Notes:
 - Running `install.py` under WSL installs the Linux binary; on macOS (Apple Silicon) it installs the Darwin arm64 binary; on Windows it installs the `.exe`.
@@ -75,7 +74,7 @@ Runtime behavior (approval/bypass flags, timeout, parallel propagation rules):
 
 ## Usage
 
-In Claude Code:
+Development workflow:
 ```text
 /dev "implement X"
 ```

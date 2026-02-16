@@ -7,7 +7,7 @@
 > 接收任务 → 选后端 → 构建参数 → 分发执行 → 收集结果。这就是 dispatch。
 
 你会得到什么：
-- `dev` skill & command：需求澄清 → 计划 → 选择后端 → 并行执行 → 验证
+- `dev` skill：需求澄清 → 计划 → 选择后端 → 并行执行 → 验证
 - `code-dispatcher` executor & skill：Go 写的执行器；统一 3 个后端 `codex/claude/gemini`；核心机制 `--parallel` & `--resume`；配套使用指南（给 AI 看的，分 full 和 flash 两版）
 - `code-council` skill：多视角并行代码评审（2–3 个 AI reviewer 并行 + host agent 终审）
 
@@ -40,10 +40,9 @@ python3 install.py --repo zhu-jl18/code-dispatcher --release-tag latest
 - `~/.code-dispatcher/bin/code-dispatcher`（Windows 上是 `.exe`）
 
 不会自动做的事（必须手动）：
-- 不会自动复制 `skills/` / `dev-workflow/commands` / `dev-workflow/agents` 到你的目标 CLI root 或 project scope
+- 不会自动复制 `skills/` 到你的目标 CLI root 或 project scope
 - 需要按你的目标 CLI 自行手动复制：
-  - **Skills**：从本仓库 `skills/*` 里挑需要的（例如 `skills/dev`、`skills/code-dispatcher` 或 `skills/code-dispatcher-flash`、`skills/code-council`）
-  - **/dev command（Claude Code 等）**：使用 `dev-workflow/commands/dev.md` 与 `dev-workflow/agents/*`
+  - 从本仓库 `skills/*` 里挑需要的（例如 `skills/dev`、`skills/code-dispatcher` 或 `skills/code-dispatcher-flash`、`skills/code-council`）
 
 提示：
 - 在 WSL 里运行 `install.py` 会安装 Linux 二进制；在 macOS（Apple Silicon）里运行会安装 Darwin arm64 二进制；在 Windows 里运行会安装 Windows `.exe`。
@@ -76,7 +75,7 @@ bash scripts/build-dist.sh
 
 ## 使用
 
-在 Claude Code 里：
+开发工作流：
 ```text
 /dev "实现 X"
 ```
