@@ -1,12 +1,13 @@
 ---
 name: github-issue-pr-flow
-description: "Autonomous GitHub issue-to-PR delivery workflow with bot-review triage and squash-merge closure. Use when handling end-to-end issue-driven implementation, PR lifecycle automation, or bot review rebut/fix loops."
+description: "Autonomous GitHub issue-to-PR delivery workflow with review-signal triage and squash-merge closure. Use when handling end-to-end issue-driven implementation, PR lifecycle automation, or review rebut/fix loops."
 ---
 
 # GitHub Issue → PR Delivery Flow
 
 ## Operating Principles
 - Keep full autonomy for decomposition, branch planning, triage, and merge execution.
+- Treat external review tools as advisory signals; host agent is final decision-maker.
 - Keep traceability: every PR body must include `Closes #<primary_issue>`.
 - Keep scope discipline: one PR should close one primary issue chain.
 - Use `code-dispatcher --backend codex` only as backup for `critical`/`high` findings or hard debugging.
@@ -44,11 +45,12 @@ Execute phases in order with no user confirmation gates unless escalation rules 
 - Keep PR summary testable and concise.
 
 ### Phase 4: Collect Reviews and CI Signals
-- Wait a reasonable bot review window, then collect latest review and check-run states.
-- Do not block forever if bots stay silent; CI and maintainers remain the gate.
+- Wait a reasonable review window, then collect latest review and check-run states.
+- Do not block forever if external review tools stay silent; CI and maintainers remain the gate.
 
 ### Phase 5: Triage Review Findings
 - Decide each finding independently: fix, rebut with evidence, or align with repo convention.
+- Do not mirror reviewer severity blindly; classify by reproducibility, code impact, and CI/test evidence.
 - Reply under each review comment and resolve each thread after handling.
 - Re-run CI after each push; keep looping until stable or escalation is required.
 - Limit autonomous rebut/fix loops to 2 rounds, then escalate if blocking findings remain.
@@ -68,7 +70,7 @@ Escalate to user only when:
 Everything else should proceed autonomously.
 
 ## Failure Handling
-- Bot reviews absent: proceed with CI and maintainer review signals.
-- Bot feedback conflicts: prioritize reproducible failures and test evidence.
+- External reviews absent: proceed with CI and maintainer review signals.
+- External review feedback conflicts: prioritize reproducible failures and test evidence.
 - Scope creep appears mid-flight: split to new issue(s) and keep current PR focused.
 - `gh` command fails: retry once; if still failing, report the blocking error and stop.
