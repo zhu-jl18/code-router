@@ -7,9 +7,12 @@
 > Receive task → select backend → build args → dispatch execution → collect results. That's dispatch.
 
 What you get:
-- `dev` skill: requirements clarification → plan → select backend → parallel execution → verification
+- `dev` skill: requirements clarification → plan → select backend → parallel execution (DAG scheduling) → verification
+- `wave` skill: iterative flat-parallel execution strategy (host agent dynamically decomposes each wave → parallel dispatch → review results → next wave)
 - `code-dispatcher` executor & skill: Go executor; unified 3 backends `codex/claude/gemini`; core mechanisms `--parallel` & `--resume`; usage guide (for AI consumption, full and flash variants)
 - `code-council` skill: multi-perspective parallel code review (2–3 AI reviewers in parallel + host agent final pass)
+- `github-issue-pr-flow` skill: autonomous issue-to-PR delivery (decompose → implement → open PR → handle reviews → squash merge)
+- `pr-review-reply` skill: autonomous bot-review triage on PRs (Gemini / CodeRabbit etc.) — verify → fix or rebut → reply in thread → resolve
 
 ## Backend Positioning (Recommended)
 
@@ -41,7 +44,7 @@ Installer outputs:
 Not automated (manual by design):
 - No auto-copy of `skills/` into your target CLI root/project scope
 - Manually copy what you need based on your target CLI:
-  - Pick from `skills/*` (for example: `skills/dev`, `skills/code-dispatcher` or `skills/code-dispatcher-flash`, `skills/code-council`)
+  - Pick from `skills/*` (for example: `skills/dev`, `skills/wave`, `skills/code-dispatcher` or `skills/code-dispatcher-flash`, `skills/code-council`, `skills/github-issue-pr-flow`, `skills/pr-review-reply`)
 
 Notes:
 - Running `install.py` under WSL installs the Linux binary; on macOS (Apple Silicon) it installs the Darwin arm64 binary; on Windows it installs the `.exe`.
@@ -74,9 +77,14 @@ Runtime behavior (approval/bypass flags, timeout, parallel propagation rules):
 
 ## Usage
 
-Development workflow:
+Development workflow (one-shot DAG):
 ```text
 /dev "implement X"
+```
+
+Development workflow (iterative waves):
+```text
+/wave "implement X"
 ```
 
 Code review:

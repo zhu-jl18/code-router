@@ -10,7 +10,7 @@ code-dispatcher is a Go CLI that receives coding tasks, selects a backend (`code
 
 ## Repository Structure
 - `code-dispatcher/`: Go source (main package and backend dispatch logic)
-- `skills/`: Claude Code skills (`dev`, `code-dispatcher`, `code-dispatcher-flash`, `code-council`, `github-issue-pr-flow`)
+- `skills/`: Claude Code skills (`dev`, `wave`, `code-dispatcher`, `code-dispatcher-flash`, `code-council`, `github-issue-pr-flow`, `pr-review-reply`)
 - `docs/`: documentation (`runtime-config.md`)
 - `memory/`: additional instruction memory (`CLAUDE-add.md`)
 - `scripts/`: build scripts (`build-dist.sh`)
