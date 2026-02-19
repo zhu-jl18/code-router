@@ -13,7 +13,7 @@ Evidence takes priority over reviewer severity label.
 
 ## Fix Reply Template
 ```
-Decision: fix accepted
+Decision: accepted and fixed
 
 Changes:
 - <what changed and why>
@@ -35,7 +35,7 @@ Verification:
 
 ## Nitpick / Won't Fix Template
 ```
-Decision: acknowledged, no change
+Decision: acknowledged, no code change
 
 Reason:
 - <one-line explanation aligned with repo convention>

@@ -1,6 +1,6 @@
 ---
 name: pr-review-reply
-description: "Autonomous bot review triage skill. Tracks the current PR, fetches Gemini and CodeRabbit review findings, verifies each finding against code, decides fix-or-rebut, replies under the corresponding GitHub review thread, and resolves the thread. Triggers when user asks to handle, triage, respond to, or clear bot reviews on a PR."
+description: "Autonomous PR bot-review triage skill for Gemini, CodeRabbit, and similar reviewers. Detects the current PR, validates each finding against code and CI, decides fix-or-rebut, replies in the matching GitHub review thread, and resolves handled threads. Use when the user asks to triage, respond to, or clear bot review comments on a PR."
 ---
 
 # PR Review Reply
@@ -35,7 +35,7 @@ gh pr checks $PR
 ```
 
 Filter for bot authors: `gemini-code-assist`, `coderabbitai`.
-Skip comments that already have an owner reply or are marked resolved.
+Skip only threads that are already resolved, or have an explicit maintainer reply that fully addresses the finding.
 
 Get unresolved thread IDs via GraphQL (needed for resolving):
 ```bash
@@ -68,7 +68,7 @@ See `references/triage-guide.md` for decision criteria and reply templates.
 
 **Fix path:**
 1. Make code change, ensure CI passes locally if possible
-2. Commit and push
+2. Commit and push in sensible batches; avoid one-push-per-comment loops that amplify rate-limit pressure
 
 **Rebut path:**
 1. Collect concrete evidence (file path, line, test result, invariant)
@@ -98,7 +98,8 @@ mutation($threadId: ID!) {
 ```
 
 ### Step 6: Re-request Review
-After all threads are handled, trigger the next bot pass via an empty commit (most reliable for bots):
+After all threads are handled, request the next bot pass only when new commits were pushed in this round.
+Use an empty commit only when a new bot pass is required and no code change commit exists:
 
 ```bash
 git commit --allow-empty -m "chore: trigger re-review" && git push
@@ -120,6 +121,7 @@ Stop and report to user when:
 - Never resolve a thread without replying — silent resolves are not allowed
 - Never open a brand-new top-level PR comment as a substitute for replying in a review thread
 - Review-level (no-line) findings: reply within the review summary thread, not as a new standalone comment
+- Treat reviewer severity labels as hints, not final decisions; code and CI evidence decide outcomes
 
 ## Error Handling
 
@@ -127,7 +129,7 @@ Stop and report to user when:
 Before making changes:
 - Verify current branch matches PR head branch: `gh pr view $PR --json headRefName -q .headRefName`
 - If on wrong branch: stop and report to user — do not auto-checkout
-- If uncommitted changes exist: stash or commit before proceeding
+- If unrelated uncommitted changes exist: stop and report to user; do not auto-stash or auto-commit unknown work
 
 ### Missing File in Finding
 If a bot comment references a file that doesn't exist locally:
