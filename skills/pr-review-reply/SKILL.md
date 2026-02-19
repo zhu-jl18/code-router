@@ -75,7 +75,7 @@ See `references/triage-guide.md` for decision criteria and reply templates.
 2. Draft reply with evidence
 
 ### Step 4: Reply Under Thread
-Reply under the exact comment that raised the finding (not as a top-level PR comment):
+Reply under the exact comment that raised the finding whenever a replyable thread exists:
 
 ```bash
 gh api repos/$REPO/pulls/$PR/comments \
@@ -84,6 +84,7 @@ gh api repos/$REPO/pulls/$PR/comments \
 ```
 
 The root comment ID of a thread is the one **without** `in_reply_to_id`.
+If a review-level finding has no replyable thread/comment ID, post one scoped PR comment that references reviewer identity and finding context.
 
 ### Step 5: Resolve Thread
 After replying, resolve the thread via GraphQL using the thread node ID from Step 1:
@@ -119,8 +120,8 @@ Stop and report to user when:
 ## Hard Rules
 - Every handled finding **must** have a reply in its thread before resolving
 - Never resolve a thread without replying — silent resolves are not allowed
-- Never open a brand-new top-level PR comment as a substitute for replying in a review thread
-- Review-level (no-line) findings: reply within the review summary thread, not as a new standalone comment
+- Never open a brand-new top-level PR comment when a replyable review thread exists
+- Review-level (no-line) findings with no replyable thread: post one scoped PR comment instead of forcing an invalid thread reply
 - Treat reviewer severity labels as hints, not final decisions; code and CI evidence decide outcomes
 
 ## Error Handling
@@ -140,7 +141,7 @@ If a bot comment references a file that doesn't exist locally:
 ### Comment Without Line Number
 Some bot comments may lack line context:
 - Use PR diff to locate relevant code: `gh pr diff $PR -- <path>`
-- If still unclear: reply within the review-level summary thread (not a new standalone comment); do not resolve
+- If still unclear: reply in-thread when possible; otherwise post one scoped PR comment and do not resolve missing/unclear threads blindly
 
 ### Thread Resolution Fails
 If GraphQL mutation to resolve thread fails:
