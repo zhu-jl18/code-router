@@ -89,7 +89,10 @@ def _install_env_template(install_dir: Path, *, force: bool) -> None:
         "CODE_DISPATCHER_TIMEOUT=7200\n\n"
         "CODE_DISPATCHER_ASCII_MODE=false\n"
         "CODE_DISPATCHER_MAX_PARALLEL_WORKERS=0\n"
-        "CODE_DISPATCHER_LOGGER_CLOSE_TIMEOUT_MS=5000\n"
+        "CODE_DISPATCHER_LOGGER_CLOSE_TIMEOUT_MS=5000\n\n"
+        "# Backend model override (optional, leave empty to use CLI defaults)\n"
+        "# CODE_DISPATCHER_GEMINI_MODEL=\n"
+        "# CODE_DISPATCHER_CODEX_MODEL=\n"
     )
     _write_if_missing(install_dir / ".env", env_template, force=force)
 
@@ -229,14 +232,12 @@ def _print_path_hint(bin_path: Path) -> None:
     print("PATH setup:")
 
     if os.name == "nt":
-        # Windows
-        print("  Add to PATH manually:")
-        print("  1. Open System Properties > Environment Variables")
-        print("  2. Edit 'Path' under User variables")
-        print(f"  3. Add: {bin_path}")
-        print("")
-        print("  Or run in PowerShell (current user):")
+        # Windows — different host agents use different shells
+        print("  PowerShell / cmd (e.g. Warp, native terminals):")
         print(f'  [Environment]::SetEnvironmentVariable("Path", $env:Path + ";{bin_path}", "User")')
+        print("")
+        print("  Git Bash (e.g. Claude Code on Windows):")
+        print(f'  echo \'export PATH="{bin_path.as_posix()}:$PATH"\' >> ~/.bashrc')
     else:
         # Linux / macOS
         shell_config = _get_shell_config_path()

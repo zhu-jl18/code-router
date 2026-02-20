@@ -59,6 +59,15 @@ func normalizeBackendName(name string) string {
 	return strings.ToLower(strings.TrimSpace(name))
 }
 
+func resolveBackendModel(backendName string) string {
+	key := "CODE_DISPATCHER_" + strings.ToUpper(normalizeBackendName(backendName)) + "_MODEL"
+	val, ok := lookupRuntimeSetting(key)
+	if !ok {
+		return ""
+	}
+	return strings.TrimSpace(val)
+}
+
 func buildClaudeArgs(cfg *Config, targetArg string) []string {
 	if cfg == nil {
 		return nil
@@ -93,6 +102,10 @@ func buildGeminiArgs(cfg *Config, targetArg string) []string {
 		return nil
 	}
 	args := []string{"-o", "stream-json", "-y"}
+
+	if model := resolveBackendModel("gemini"); model != "" {
+		args = append(args, "-m", model)
+	}
 
 	if cfg.Mode == "resume" {
 		if cfg.SessionID != "" {

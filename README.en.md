@@ -49,6 +49,7 @@ Not automated (manual by design):
 Notes:
 - Running `install.py` under WSL installs the Linux binary; on macOS (Apple Silicon) it installs the Darwin arm64 binary; on Windows it installs the `.exe`.
 - Requires network access to GitHub Releases; use `--skip-dispatcher` if you only need runtime config/assets.
+- Windows PATH: different host agents use different shells. PowerShell/cmd reads the Windows user PATH; Git Bash (e.g. Claude Code) requires `export PATH="$HOME/.code-dispatcher/bin:$PATH"` in `~/.bashrc`. `install.py` prints setup instructions for both shells.
 
 ## Local Build (Optional)
 
@@ -72,8 +73,15 @@ Behavior:
 - code-dispatcher loads the per-backend prompt and prepends it only if it has non-empty content.
 - Empty/whitespace-only or missing prompt files behave like "no injection".
 
-Runtime behavior (approval/bypass flags, timeout, parallel propagation rules):
+Runtime behavior (approval/bypass flags, timeout, parallel propagation rules, backend model override):
 - `docs/runtime-config.md`
+
+Optional: specify the model each backend should use in `~/.code-dispatcher/.env`:
+```text
+CODE_DISPATCHER_GEMINI_MODEL=gemini-2.5-pro
+CODE_DISPATCHER_CODEX_MODEL=o3
+```
+Leave unset to use each CLI's default. Claude does not support model override via dispatcher.
 
 ## Usage
 

@@ -52,6 +52,9 @@ func TestClaudeBuildArgs_ModesAndPermissions(t *testing.T) {
 }
 
 func TestVariousBackendsBuildArgs(t *testing.T) {
+	setRuntimeSettingsForTest(map[string]string{})
+	t.Cleanup(resetRuntimeSettingsForTest)
+
 	t.Run("gemini new mode defaults workdir", func(t *testing.T) {
 		backend := GeminiBackend{}
 		cfg := &Config{Mode: "new", WorkDir: "/workspace"}
@@ -187,4 +190,71 @@ func TestRuntimeEnvForBackend(t *testing.T) {
 			t.Fatalf("got %v, want nil/empty", got)
 		}
 	})
+}
+
+func TestResolveBackendModel(t *testing.T) {
+	t.Run("returns empty when not set", func(t *testing.T) {
+		setRuntimeSettingsForTest(map[string]string{})
+		t.Cleanup(resetRuntimeSettingsForTest)
+		if got := resolveBackendModel("gemini"); got != "" {
+			t.Fatalf("got %q, want empty", got)
+		}
+	})
+
+	t.Run("gemini model from env", func(t *testing.T) {
+		setRuntimeSettingsForTest(map[string]string{"CODE_DISPATCHER_GEMINI_MODEL": "gemini-2.5-pro"})
+		t.Cleanup(resetRuntimeSettingsForTest)
+		if got := resolveBackendModel("gemini"); got != "gemini-2.5-pro" {
+			t.Fatalf("got %q, want gemini-2.5-pro", got)
+		}
+	})
+
+	t.Run("codex model from env", func(t *testing.T) {
+		setRuntimeSettingsForTest(map[string]string{"CODE_DISPATCHER_CODEX_MODEL": "o3"})
+		t.Cleanup(resetRuntimeSettingsForTest)
+		if got := resolveBackendModel("codex"); got != "o3" {
+			t.Fatalf("got %q, want o3", got)
+		}
+	})
+
+	t.Run("whitespace trimmed", func(t *testing.T) {
+		setRuntimeSettingsForTest(map[string]string{"CODE_DISPATCHER_GEMINI_MODEL": "  gemini-2.5-flash  "})
+		t.Cleanup(resetRuntimeSettingsForTest)
+		if got := resolveBackendModel("gemini"); got != "gemini-2.5-flash" {
+			t.Fatalf("got %q, want gemini-2.5-flash", got)
+		}
+	})
+
+	t.Run("whitespace-only treated as empty", func(t *testing.T) {
+		setRuntimeSettingsForTest(map[string]string{"CODE_DISPATCHER_GEMINI_MODEL": "   "})
+		t.Cleanup(resetRuntimeSettingsForTest)
+		if got := resolveBackendModel("gemini"); got != "" {
+			t.Fatalf("got %q, want empty for whitespace-only value", got)
+		}
+	})
+}
+
+func TestGeminiBuildArgs_WithModel(t *testing.T) {
+	setRuntimeSettingsForTest(map[string]string{"CODE_DISPATCHER_GEMINI_MODEL": "gemini-2.5-pro"})
+	t.Cleanup(resetRuntimeSettingsForTest)
+
+	backend := GeminiBackend{}
+	cfg := &Config{Mode: "new", WorkDir: "/workspace"}
+	got := backend.BuildArgs(cfg, "task")
+	want := []string{"-o", "stream-json", "-y", "-m", "gemini-2.5-pro", "task"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("got %v, want %v", got, want)
+	}
+}
+
+func TestCodexBuildArgs_WithModel(t *testing.T) {
+	setRuntimeSettingsForTest(map[string]string{"CODE_DISPATCHER_CODEX_MODEL": "o3"})
+	t.Cleanup(resetRuntimeSettingsForTest)
+
+	cfg := &Config{Mode: "new", WorkDir: "/tmp"}
+	got := buildCodexArgs(cfg, "task")
+	want := []string{"e", "-m", "o3", "--dangerously-bypass-approvals-and-sandbox", "--skip-git-repo-check", "-C", "/tmp", "--json", "task"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("got %v, want %v", got, want)
+	}
 }

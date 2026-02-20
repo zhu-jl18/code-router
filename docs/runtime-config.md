@@ -43,6 +43,18 @@ All backends run with approval bypass hardcoded (no toggle):
   - default: `5000`
   - `0` => wait indefinitely
 
+### Backend Model Override
+
+- `CODE_DISPATCHER_GEMINI_MODEL`
+  - optional; if set, passes `-m <value>` to gemini CLI
+  - example: `gemini-2.5-pro`
+
+- `CODE_DISPATCHER_CODEX_MODEL`
+  - optional; if set, passes `-m <value>` to codex CLI
+  - example: `o3`
+
+- **Claude:** model override via dispatcher is not supported.
+
 ### Prompt Files
 
 Prompt files are resolved from:

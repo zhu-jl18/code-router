@@ -50,6 +50,7 @@ python3 install.py --repo zhu-jl18/code-dispatcher --release-tag latest
 提示：
 - 在 WSL 里运行 `install.py` 会安装 Linux 二进制；在 macOS（Apple Silicon）里运行会安装 Darwin arm64 二进制；在 Windows 里运行会安装 Windows `.exe`。
 - 需要网络访问 GitHub Release；如只想更新配置文件，使用 `--skip-dispatcher`。
+- Windows PATH 注意：不同 host agent 使用不同 shell。PowerShell/cmd 读 Windows 用户 PATH；Git Bash（如 Claude Code）需要在 `~/.bashrc` 中加 `export PATH="$HOME/.code-dispatcher/bin:$PATH"`。`install.py` 会打印两种 shell 的设置方法。
 
 ## 本地构建（可选）
 
@@ -73,8 +74,15 @@ bash scripts/build-dist.sh
 - code-dispatcher 会读取对应后端的 prompt 文件；只有在内容非空时才会 prepend 到任务前面
 - 文件不存在 / 只有空白字符：等价“无注入”
 
-运行时配置（审批/绕过、超时、并行传播规则）详见：
+运行时配置（审批/绕过、超时、并行传播规则、后端 model 指定）详见：
 - `docs/runtime-config.md`
+
+可选：在 `~/.code-dispatcher/.env` 中指定后端使用的 model：
+```text
+CODE_DISPATCHER_GEMINI_MODEL=gemini-2.5-pro
+CODE_DISPATCHER_CODEX_MODEL=o3
+```
+不设置则使用各 CLI 自身默认值。Claude 不支持通过 dispatcher 指定 model。
 
 ## 使用
 

@@ -793,6 +793,10 @@ func buildCodexArgs(cfg *Config, targetArg string) []string {
 
 	args := []string{"e"}
 
+	if model := resolveBackendModel("codex"); model != "" {
+		args = append(args, "-m", model)
+	}
+
 	args = append(args, "--dangerously-bypass-approvals-and-sandbox", "--skip-git-repo-check")
 
 	if isResume {
