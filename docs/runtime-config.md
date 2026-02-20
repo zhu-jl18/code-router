@@ -53,7 +53,7 @@ All backends run with approval bypass hardcoded (no toggle):
   - optional; if set, passes `-m <value>` to codex CLI
   - example: `o3`
 
-Claude does not support model override via dispatcher.
+- **Claude:** model override via dispatcher is not supported.
 
 ### Prompt Files
 

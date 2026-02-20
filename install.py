@@ -237,7 +237,7 @@ def _print_path_hint(bin_path: Path) -> None:
         print(f'  [Environment]::SetEnvironmentVariable("Path", $env:Path + ";{bin_path}", "User")')
         print("")
         print("  Git Bash (e.g. Claude Code on Windows):")
-        print(f'  echo \'export PATH="$HOME/.code-dispatcher/bin:$PATH"\' >> ~/.bashrc')
+        print(f'  echo \'export PATH="{bin_path.as_posix()}:$PATH"\' >> ~/.bashrc')
     else:
         # Linux / macOS
         shell_config = _get_shell_config_path()

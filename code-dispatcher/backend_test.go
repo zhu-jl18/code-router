@@ -52,6 +52,9 @@ func TestClaudeBuildArgs_ModesAndPermissions(t *testing.T) {
 }
 
 func TestVariousBackendsBuildArgs(t *testing.T) {
+	setRuntimeSettingsForTest(map[string]string{})
+	t.Cleanup(resetRuntimeSettingsForTest)
+
 	t.Run("gemini new mode defaults workdir", func(t *testing.T) {
 		backend := GeminiBackend{}
 		cfg := &Config{Mode: "new", WorkDir: "/workspace"}
@@ -219,6 +222,14 @@ func TestResolveBackendModel(t *testing.T) {
 		t.Cleanup(resetRuntimeSettingsForTest)
 		if got := resolveBackendModel("gemini"); got != "gemini-2.5-flash" {
 			t.Fatalf("got %q, want gemini-2.5-flash", got)
+		}
+	})
+
+	t.Run("whitespace-only treated as empty", func(t *testing.T) {
+		setRuntimeSettingsForTest(map[string]string{"CODE_DISPATCHER_GEMINI_MODEL": "   "})
+		t.Cleanup(resetRuntimeSettingsForTest)
+		if got := resolveBackendModel("gemini"); got != "" {
+			t.Fatalf("got %q, want empty for whitespace-only value", got)
 		}
 	})
 }
