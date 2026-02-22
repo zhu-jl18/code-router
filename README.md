@@ -63,16 +63,19 @@ bash scripts/build-dist.sh
 - `dist/code-dispatcher-darwin-arm64`
 - `dist/code-dispatcher-windows-amd64.exe`
 
-## Prompt 注入（默认开启；空文件 = 等价不注入）
+## Prompt 注入（默认开启）
 
-默认占位文件（每个后端一个）：
+每个后端一个 prompt 文件，安装时从仓库 `prompts/` 目录复制默认内容：
 - `~/.code-dispatcher/prompts/codex-prompt.md`
 - `~/.code-dispatcher/prompts/claude-prompt.md`
 - `~/.code-dispatcher/prompts/gemini-prompt.md`
 
+默认内容告诉后端：你是被 code-dispatcher 调度的 worker，这是一次 end-to-end 调用，不要中途停下，自由探索代码库获取上下文。
+
 规则：
 - code-dispatcher 会读取对应后端的 prompt 文件；只有在内容非空时才会 prepend 到任务前面
 - 文件不存在 / 只有空白字符：等价“无注入”
+- 要自定义：直接编辑 `~/.code-dispatcher/prompts/` 下的文件，或修改仓库 `prompts/` 目录后重新运行 `install.py --force`
 
 运行时配置（审批/绕过、超时、并行传播规则、后端 model 指定）详见：
 - `docs/runtime-config.md`

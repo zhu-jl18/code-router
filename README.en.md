@@ -62,16 +62,19 @@ Local artifacts (not tracked by git by default):
 - `dist/code-dispatcher-darwin-arm64`
 - `dist/code-dispatcher-windows-amd64.exe`
 
-## Prompt Injection (Default-On, Empty = No-Op)
+## Prompt Injection (Default-On)
 
-Default prompt placeholder files:
+Per-backend prompt files, installed from the repo `prompts/` directory with default content:
 - `~/.code-dispatcher/prompts/codex-prompt.md`
 - `~/.code-dispatcher/prompts/claude-prompt.md`
 - `~/.code-dispatcher/prompts/gemini-prompt.md`
 
+Defaults tell each backend: you are a worker dispatched by code-dispatcher, this is an end-to-end call, don't stop midway, freely explore the codebase for context.
+
 Behavior:
 - code-dispatcher loads the per-backend prompt and prepends it only if it has non-empty content.
 - Empty/whitespace-only or missing prompt files behave like "no injection".
+- To customize: edit files under `~/.code-dispatcher/prompts/` directly, or modify the repo `prompts/` dir and re-run `install.py --force`.
 
 Runtime behavior (approval/bypass flags, timeout, parallel propagation rules, backend model override):
 - `docs/runtime-config.md`

@@ -44,6 +44,12 @@ gh pr checks $PR
 Filter for bot authors: `gemini-code-assist`, `coderabbitai`.
 Skip only threads that are already resolved, or have an explicit maintainer reply that fully addresses the finding.
 
+#### Wait for ALL Bots Before Acting
+Multiple bots may review the same PR (e.g. CodeRabbit + Gemini). Do NOT start fixing/rebutting until **all** expected bot reviews have landed.
+- Check which bots have posted reviews and which are still pending.
+- If CodeRabbit is pending but Gemini is done (or vice versa): **wait for the slow one**. Do not push fixes based on only one bot's review — the push will re-trigger CodeRabbit and you'll waste the wait.
+- Once all bots reach a terminal state (State A/C/D), collect all findings from all bots into one unified list, then proceed to Step 2.
+
 #### CodeRabbit Behavior Model
 CodeRabbit is **slow**. You must internalize these facts:
 - A full review takes 2–5 minutes, sometimes longer for large PRs.
@@ -109,9 +115,11 @@ Do not accept or reject a finding based on reviewer wording alone — code evide
 ### Step 3: Fix or Rebut
 See `references/triage-guide.md` for decision criteria and reply templates.
 
+**Critical: do NOT commit or push until you've processed ALL findings from ALL bots.** A premature push re-triggers CodeRabbit and wastes minutes of wait time. Accumulate all code changes locally first.
+
 **Fix path:**
-1. Make code change, ensure CI passes locally if possible
-2. Commit and push in sensible batches; avoid one-push-per-comment loops that amplify rate-limit pressure
+1. Make code change locally — do NOT commit yet
+2. Continue to next finding
 
 **Rebut path:**
 1. Collect concrete evidence (file path, line, test result, invariant)
@@ -142,11 +150,12 @@ mutation($threadId: ID!) {
 ```
 
 ### Step 6: Push and Wait for Re-review
-After all threads are handled, if you made code changes:
-1. Commit and push all fixes in one batch.
-2. **Pushing will re-trigger CodeRabbit.** You must wait for the new review before declaring done.
-3. Go back to Step 1 and re-enter the pending detection flow (State B). Wait for the new review to land.
-4. If new findings appear → process them (Step 2–5). If no new findings → done.
+You should only reach this step after ALL findings from ALL bots have been processed (fix or rebut + reply + resolve).
+
+If you made code changes:
+1. Commit and push all fixes in **one single batch**. Never push per-finding — every push re-triggers CodeRabbit and wastes 5+ min.
+2. After push, go back to Step 1. Wait for all bots to re-review (same pending detection as before).
+3. If new findings appear → process them (Step 2–5). If no new findings → done.
 
 If no code changes were made (all rebuttals), skip the push. No re-review needed.
 

@@ -77,8 +77,16 @@ def _write_if_missing(path: Path, content: str, *, force: bool) -> None:
 def _install_prompts(install_dir: Path, *, force: bool) -> None:
     prompts_dir = install_dir / "prompts"
     _ensure_dir(prompts_dir)
+    bundled_dir = Path(__file__).resolve().parent / "prompts"
     for backend in BACKENDS:
-        _write_if_missing(prompts_dir / f"{backend}-prompt.md", "", force=force)
+        dest = prompts_dir / f"{backend}-prompt.md"
+        src = bundled_dir / f"{backend}-prompt.md"
+        if dest.exists() and not force:
+            continue
+        if src.is_file():
+            shutil.copy2(src, dest)
+        else:
+            _write_if_missing(dest, "", force=force)
 
 
 def _install_env_template(install_dir: Path, *, force: bool) -> None:
